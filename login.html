@@ -1,91 +1,49 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
   <title>Login</title>
-   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="firebase-config.js"></script>
-
-  <!-- ให้ตรวจสถานะด้วยเช่นกัน เพื่อห้ามคนล็อกอินแล้วเข้าหน้า login -->
-  <script src="auth-guard.js"></script>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .login-container {
-      background-color: #fff;
-      padding: 30px 40px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-      width: 100%;
-      max-width: 360px;
-    }
-    .login-container h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #333;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0 20px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      background-color: #1a2a6c;
-      color: #fff;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0d1a3c;
-    }
-    .login-logo {
-  display: block;
-  margin: 40px auto 20px; /* เลื่อนลง 40px ด้านบน และ 20px ด้านล่าง แล้วกึ่งกลางแนวนอน */
-  max-width: 200px;       /* ปรับขนาดสูงสุด */
-  height: auto;
-}
-  </style>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js"></script>
 </head>
-<body>  
-  <div class="login-container">
-    <img src="luxu-logo.png" alt="Luxu Logo" class="login-logo">
+<body>
+  <div style="max-width:300px;margin:50px auto;">
     <h2>Login</h2>
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Password" required />
-    <button onclick="login()">Sign In</button>
+    <input id="email"    type="email"    placeholder="Email"    style="width:100%;padding:8px;margin:4px 0;"/>
+    <input id="password" type="password" placeholder="Password" style="width:100%;padding:8px;margin:4px 0;"/>
+    <button id="btnLogin" style="width:100%;padding:10px;margin:8px 0;">Login</button>
+    <div id="msg" style="color:red;"></div>
   </div>
 
- 
   <script>
-    document.getElementById('loginForm').addEventListener('submit', e => {
-      e.preventDefault();
+    
+    // login.html หรือ index.html (ใน <script> ก่อน initializeApp)
+const firebaseConfig = {
+  apiKey: "AIzaSyDqd20lb2fQSMjqsSmzUXXgQFhBNC8sB9g",
+  authDomain: "luxutour-63450.firebaseapp.com",
+  projectId: "luxutour-63450",
+  storageBucket: "luxutour-63450.firebasestorage.app",
+  messagingSenderId: "349190270077",
+  appId: "1:349190270077:web:c52b936bdc2f06c7db1514",
+  measurementId: "G-1F45DPS42M"
+};
+firebase.initializeApp(firebaseConfig);
+
+    // 2) Initialize
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // 3) เมื่อกด Login
+    document.getElementById('btnLogin').onclick = () => {
       const email = document.getElementById('email').value;
-      const pass  = document.getElementById('password').value;
-      firebase.auth()
-        .signInWithEmailAndPassword(email, pass)
-        .then(() => {
-          // success → ไปหน้า index
-          window.location.replace('index.html');
-        })
-        .catch(err => alert(err.message));
-    });
+      const pw    = document.getElementById('password').value;
+      auth.signInWithEmailAndPassword(email, pw)
+        .then(() => { window.location = 'index.html'; })
+        .catch(e => {
+          document.getElementById('msg').textContent = e.message;
+        });
+    };
   </script>
 </body>
 </html>
