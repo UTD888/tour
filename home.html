@@ -1,0 +1,29 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Welcome</title>
+  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js"></script>
+  <script src="firebase-config.js"></script>
+</head>
+<body>
+  <h2>Welcome</h2>
+  <p id="user-info"></p>
+  <button onclick="logout()">Logout</button>
+  <script>
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        document.getElementById("user-info").innerText = "Logged in as: " + user.email;
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+    function logout() {
+      firebase.auth().signOut().then(() => {
+        window.location.href = "login.html";
+      });
+    }
+  </script>
+</body>
+</html>
