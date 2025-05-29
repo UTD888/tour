@@ -19,7 +19,7 @@
       const password = document.getElementById('password').value;
       try {
         const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
-        window.location.href = "index.html";
+        window.location.href = "index.html";  // ไปยังหน้าที่ผู้ใช้ต้องการหลัง login สำเร็จ
       } catch (error) {
         document.getElementById('message').innerText = error.message;
       }
