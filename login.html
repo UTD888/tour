@@ -5,6 +5,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login</title>
+   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <!-- ให้ตรวจสถานะด้วยเช่นกัน เพื่อห้ามคนล็อกอินแล้วเข้าหน้า login -->
+  <script src="auth-guard.js"></script>
   <style>
     body {
       margin: 0;
@@ -66,22 +72,20 @@
     <button onclick="login()">Sign In</button>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="firebase-config.js"></script>
+ 
   <script>
-    function login() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      firebase.auth().signInWithEmailAndPassword(email, password)
+    document.getElementById('loginForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const pass  = document.getElementById('password').value;
+      firebase.auth()
+        .signInWithEmailAndPassword(email, pass)
         .then(() => {
-          window.location.href = "index.html";
+          // success → ไปหน้า index
+          window.location.replace('index.html');
         })
-        .catch((error) => {
-          alert("Login failed: " + error.message);
-        });
-    }
+        .catch(err => alert(err.message));
+    });
   </script>
 </body>
 </html>
