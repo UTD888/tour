@@ -278,6 +278,12 @@
     <button class="btn" style="margin-top:18px;" onclick="closeDeleteTourModal()">Cancel</button>
   </div>
 </div>
+  <!-- Added logout container: will be shown only when user is authenticated -->
+  <div id="logoutContainer" style="position: fixed; top: 10px; right: 10px; z-index: 10000; display: none;">
+    <button id="logoutBtn" style="padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer;">
+      Logout
+    </button>
+  </div>
 
 
   <h1>Setup Poker Tournament</h1>
@@ -391,6 +397,29 @@
     </div>
   </div>
   <script>
+    // Initially hide logout container until we confirm user state
+    document.getElementById('logoutContainer').style.display = 'none';
+
+    // Added onAuthStateChanged listener to control logout button visibility
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        // If user is logged in, show the logout button
+        document.getElementById('logoutContainer').style.display = 'block';
+      } else {
+        // If no user, redirect to login page
+        window.location.href = 'login.html';
+      }
+    });
+
+    // Added click handler for the logout button
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      // Clear localStorage (optional) and sign out from Firebase Auth
+      localStorage.clear(); // <--- added to clear any stored data
+      firebase.auth().signOut().then(() => {
+        // Redirect to login page after sign out
+        window.location.href = 'login.html';
+      });
+    });
     // --- Auto-load Tour หลัง refresh ---
 window.onload = function() {
   const key = localStorage.getItem('currentTourKey');
