@@ -1,26 +1,25 @@
 <!DOCTYPE html>
+
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Setup Poker Tournament</title>
- <!-- Firebase App (core) + Auth -->
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Setup Poker Tournament</title>
+<!-- Firebase App (core) + Auth -->
 <!-- ✅ Firebase SDK (Compat Version) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-  <script src="firebase-init.js"></script>
-
-  <!-- ✅ ตรวจสอบว่า login แล้ว -->
-  <script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="firebase-init.js"></script>
+<!-- ✅ ตรวจสอบว่า login แล้ว -->
+<script>
     firebase.auth().onAuthStateChanged(user => {
       if (!user) {
         window.location.href = "login.html";
       }
     });
   </script>
-
-  <style>
+<style>
     button:disabled {
   opacity: 0.4 !important;
   cursor: not-allowed !important;
@@ -251,139 +250,133 @@
   </style>
 </head>
 <body>
-  
 <!-- Modal Load Tour -->
-<div id="loadTourModal" class="hidden modal-bg">
-  <div class="modal-content">
-    <h3 style="color:#00bfff;margin-top:0;">เลือกทัวร์นาเมนต์</h3>
-    <div id="loadTourList"></div>
-    <button class="btn" style="margin-top:18px;" onclick="closeLoadTourModal()">Cancel</button>
-  </div>
+<div class="hidden modal-bg" id="loadTourModal">
+<div class="modal-content">
+<h3 style="color:#00bfff;margin-top:0;">เลือกทัวร์นาเมนต์</h3>
+<div id="loadTourList"></div>
+<button class="btn" onclick="closeLoadTourModal()" style="margin-top:18px;">Cancel</button>
+</div>
 </div>
 <!-- Modal Delete Tour -->
-<div id="deleteTourModal" class="hidden modal-bg">
-  <div class="modal-content">
-    <h3 style="color:#ff4444;margin-top:0;">ลบทัวร์นาเมนต์</h3>
-    <div id="deleteTourList"></div>
-    <button class="btn" style="margin-top:18px;" onclick="closeDeleteTourModal()">Cancel</button>
-  </div>
+<div class="hidden modal-bg" id="deleteTourModal">
+<div class="modal-content">
+<h3 style="color:#ff4444;margin-top:0;">ลบทัวร์นาเมนต์</h3>
+<div id="deleteTourList"></div>
+<button class="btn" onclick="closeDeleteTourModal()" style="margin-top:18px;">Cancel</button>
 </div>
-
-
-  <h1>Setup Poker Tournament</h1>
-  <button onclick="firebase.auth().signOut()" style="position:fixed;top:10px;right:10px;">Logout</button>
-
-  <div class="main-container">
-    
-    <div class="section-left">
-      <!-- Start Tour Box -->
-      <div id="tourStateBox" style="margin-bottom:16px;"></div>
-      <div id="startTourBox">
-        <button class="btn" onclick="showCreateTour()">➕ Create Tour</button>
-        <button class="btn" onclick="showLoadTour()">📂 Load</button>
-        <button class="btn" onclick="showDeleteTour()">🗑️ Delete</button>
-      </div>
-      <!-- กล่องสร้าง/แก้ไขทัวร์ -->
-      <div id="tourInfoEditBox" class="hidden">
-        <div class="logo-wrapper">
-          <img src="luxu-logo.png" alt="Luxu Logo" class="logo">
-        </div>
-        <h2 style="color:#007bff; margin-top:0;">Create Tournament</h2>
-        <label>ชื่อทัวร์นาเมนต์ *</label>
-        <input type="text" id="tournamentName" required>
-        <div style="display: flex; gap: 10px;">
-          <div style="flex: 1;">
-            <label>Tournament Type *</label>
-            <select id="tournamentType" required>
-              <option value="">-- เลือกประเภท --</option>
-              <option value="Normal">Normal</option>
-              <option value="Bounty">Bounty</option>
-            </select>
-          </div>
-          <div style="flex: 1;">
-            <label>Guarantee</label>
-            <input type="text" id="guarantee" placeholder="(ไม่บังคับ)">
-          </div>
-        </div>
-        <label>วันแข่งขัน *</label>
-        <input type="date" id="tournamentDate" required>
-        <label>เวลาแข่งขัน *</label>
-        <input type="time" id="tournamentTime" required>
-        <div style="display: flex; gap: 10px;">
-          <div style="flex: 1;">
-            <label>Buy-in (บาท) *</label>
-            <input type="number" id="buyIn" required>
-          </div>
-          <div style="flex: 1;">
-            <label>Re-buy</label>
-            <input type="number" id="rebuy">
-          </div>
-        </div>
-        <label>Allow Add-on</label>
-        <select id="allowAddon" onchange="toggleAddonStack()">
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
-        </select>
-        <div id="addonBox" class="hidden">
-          <label>Add-on *</label>
-          <input type="number" id="addon">
-        </div>
-        <label>Starting Stack *</label>
-        <input type="number" id="startingStack" required oninput="updateAddonStack()">
-        <div id="addonStackBox" class="hidden">
-          <label>Add-on Stack</label>
-          <input type="number" id="addonStack">
-        </div>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; justify-content: center;">
-          <button class="btn" onclick="saveTourInfoEdit()">OK</button>
-          <button class="btn" onclick="cancelEditTourInfo()">Cancel</button>
-        </div>
-      </div>
-      <!-- กล่องแสดงข้อมูลทัวร์ -->
-      <div id="tourInfoBox" class="hidden">
-        <div class="logo-wrapper">
-          <img src="luxu-logo.png" alt="Luxu Logo" class="logo">
-        </div>
-        <h2 style="color:#007bff; margin-top:0;">Tournament Info</h2>
-        <div id="tourInfoFields"></div>
-  <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; justify-content: center;">
-  <button class="btn" onclick="openDisplay()">📺 Display</button>
-  <button class="btn" onclick="window.open('blind-structure.html', '_blank')">📝 Structure</button>
-  <button onclick="window.open('PrizePool.html?tour=' + encodeURIComponent(currentTourKey), '_blank')">
+</div>
+<h1>Setup Poker Tournament</h1>
+<button onclick="firebase.auth().signOut()" style="position:fixed;top:10px;right:10px;">Logout</button>
+<div class="main-container">
+<div class="section-left">
+<!-- Start Tour Box -->
+<div id="tourStateBox" style="margin-bottom:16px;"></div>
+<div id="startTourBox">
+<button class="btn" onclick="showCreateTour()">➕ Create Tour</button>
+<button class="btn" onclick="showLoadTour()">📂 Load</button>
+<button class="btn" onclick="showDeleteTour()">🗑️ Delete</button>
+</div>
+<!-- กล่องสร้าง/แก้ไขทัวร์ -->
+<div class="hidden" id="tourInfoEditBox">
+<div class="logo-wrapper">
+<img alt="Luxu Logo" class="logo" src="luxu-logo.png"/>
+</div>
+<h2 style="color:#007bff; margin-top:0;">Create Tournament</h2>
+<label>ชื่อทัวร์นาเมนต์ *</label>
+<input id="tournamentName" required="" type="text"/>
+<div style="display: flex; gap: 10px;">
+<div style="flex: 1;">
+<label>Tournament Type *</label>
+<select id="tournamentType" required="">
+<option value="">-- เลือกประเภท --</option>
+<option value="Normal">Normal</option>
+<option value="Bounty">Bounty</option>
+</select>
+</div>
+<div style="flex: 1;">
+<label>Guarantee</label>
+<input id="guarantee" placeholder="(ไม่บังคับ)" type="text"/>
+</div>
+</div>
+<label>วันแข่งขัน *</label>
+<input id="tournamentDate" required="" type="date"/>
+<label>เวลาแข่งขัน *</label>
+<input id="tournamentTime" required="" type="time"/>
+<div style="display: flex; gap: 10px;">
+<div style="flex: 1;">
+<label>Buy-in (บาท) *</label>
+<input id="buyIn" required="" type="number"/>
+</div>
+<div style="flex: 1;">
+<label>Re-buy</label>
+<input id="rebuy" type="number"/>
+</div>
+</div>
+<label>Allow Add-on</label>
+<select id="allowAddon" onchange="toggleAddonStack()">
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+<div class="hidden" id="addonBox">
+<label>Add-on *</label>
+<input id="addon" type="number"/>
+</div>
+<label>Starting Stack *</label>
+<input id="startingStack" oninput="updateAddonStack()" required="" type="number"/>
+<div class="hidden" id="addonStackBox">
+<label>Add-on Stack</label>
+<input id="addonStack" type="number"/>
+</div>
+<div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; justify-content: center;">
+<button class="btn" onclick="saveTourInfoEdit()">OK</button>
+<button class="btn" onclick="cancelEditTourInfo()">Cancel</button>
+</div>
+</div>
+<!-- กล่องแสดงข้อมูลทัวร์ -->
+<div class="hidden" id="tourInfoBox">
+<div class="logo-wrapper">
+<img alt="Luxu Logo" class="logo" src="luxu-logo.png"/>
+</div>
+<h2 style="color:#007bff; margin-top:0;">Tournament Info</h2>
+<div id="tourInfoFields"></div>
+<div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; justify-content: center;">
+<button class="btn" onclick="openDisplay()">📺 Display</button>
+<button class="btn" onclick="window.open('blind-structure.html', '_blank')">📝 Structure</button>
+<button onclick="window.open('PrizePool.html?tour=' + encodeURIComponent(currentTourKey), '_blank')">
   🏆 Prize Pool
 </button>
-  <button class="btn" onclick="editTourInfo()">✏️ Edit</button>
-  <button class="btn" onclick="finishTour()">Finish / Export</button>
-  <button class="btn" onclick="backToStartTour()">Back</button>
+<button class="btn" onclick="editTourInfo()">✏️ Edit</button>
+<button class="btn" onclick="finishTour()">Finish / Export</button>
+<button class="btn" onclick="backToStartTour()">Back</button>
 </div>
-
-      </div>
-    </div>
-    <div class="section-right">
-      <div class="player-box" id="playerBox" style="display:none;">
-        <h2>Players Management</h2>
-        <div class="player-input">
-          <input type="text" id="entryName" placeholder="ชื่อผู้เล่น">
-          <button id="addEntryBtn">+ Entry</button>
-          <button class="reset-btn" id="resetEntriesBtn">ล้างผู้เล่น</button>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Name</th>
-              <th>Status</th>
-              <th>Re-buy</th>
-              <th>Add-on</th>
-              <th>ลบ</th>
-            </tr>
-          </thead>
-          <tbody id="entryList"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <script>
+</div>
+</div>
+<div class="section-right">
+<div class="player-box" id="playerBox" style="display:none;">
+<h2>Players Management</h2>
+<div class="player-input">
+<input id="entryName" placeholder="ชื่อผู้เล่น" type="text"/>
+<button id="addEntryBtn">+ Entry</button>
+<button class="reset-btn" id="resetEntriesBtn">ล้างผู้เล่น</button>
+</div>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Name</th>
+<th>Status</th>
+<th>Re-buy</th>
+<th>Add-on</th>
+<th>ลบ</th>
+</tr>
+</thead>
+<tbody id="entryList"></tbody>
+</table>
+</div>
+</div>
+</div>
+<script>
     // --- Auto-load Tour หลัง refresh ---
 window.onload = function() {
   const key = localStorage.getItem('currentTourKey');
@@ -1082,6 +1075,32 @@ function openDisplay() {
 
 
 </script>
+
+<script>
+  // Realtime listener for tournament info
+  function setupRealtimeTournamentListener() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tourKey = urlParams.get('tourKey');
+    if (!tourKey) return;
+
+    db.collection("tournaments").doc(tourKey)
+      .onSnapshot((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          if (data) {
+            if (data.name) document.getElementById("tourName").value = data.name;
+            if (data.buyIn) document.getElementById("buyIn").value = data.buyIn;
+            if (data.tourDate) document.getElementById("tourDate").value = data.tourDate;
+            if (data.tourType) document.getElementById("tourType").value = data.tourType;
+            // Add more fields here if needed
+          }
+        }
+      });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    setupRealtimeTournamentListener();
+  });
+</script>
 </body>
 </html>
-

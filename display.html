@@ -1577,5 +1577,51 @@ window.addEventListener('DOMContentLoaded', function() {
 
 </script>
 
+
+<!-- Firebase App (the core Firebase SDK) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDqd20lb2fQSMjqsSmzUXXgQFhBNC8sB9g",
+    authDomain: "luxutour-63450.firebaseapp.com",
+    projectId: "luxutour-63450",
+    storageBucket: "luxutour-63450.firebasestorage.app",
+    messagingSenderId: "349190270077",
+    appId: "1:349190270077:web:c52b936bdc2f06c7db1514",
+    measurementId: "G-1F45DPS42M"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // Auth guard
+  firebase.auth().onAuthStateChanged(user => {
+    if (!user) {
+      window.location.href = "login.html";
+    } else {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tourKey = urlParams.get("tourKey") || "default";
+      const docRef = db.collection("displayData").doc(tourKey);
+      docRef.onSnapshot(doc => {
+        if (doc.exists) {
+          const data = doc.data();
+          // You must replace the below logic with actual field mapping
+          if (data.tournamentName) {
+            const el = document.getElementById("tournamentName");
+            if (el) el.textContent = data.tournamentName;
+          }
+          if (data.blindLevel) {
+            const el = document.getElementById("blindLevel");
+            if (el) el.textContent = data.blindLevel;
+          }
+          // Add more mappings as needed...
+        }
+      });
+    }
+  });
+</script>
+
 </body>
 </html>

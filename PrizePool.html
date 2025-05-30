@@ -1,9 +1,10 @@
 <!DOCTYPE html>
+
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>Prize Pool</title>
-  <style>
+<meta charset="utf-8"/>
+<title>Prize Pool</title>
+<style>
     body { font-family: 'Prompt', Arial, sans-serif; background: #191c24; color: #fff; }
     .container { max-width: 550px; margin: 40px auto; background: #23263a; border-radius: 20px; box-shadow: 0 0 24px #1113; padding: 24px 30px 32px 30px; }
     h2 { margin-top: 0; font-size: 1.45em; }
@@ -17,17 +18,69 @@
     th { background: #293054; color: #f0f0ff; }
     tr:nth-child(even) { background: #242849; }
   </style>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+  }
+
+  #tourInfo {
+    background-color: #f0f0f0;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+
+  th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+  }
+
+  th {
+    background-color: #f5f5f5;
+  }
+
+  input[type="number"] {
+    width: 60px;
+    padding: 5px;
+    margin-left: 10px;
+  }
+
+  .highlight {
+    color: green;
+    font-weight: bold;
+  }
+
+  .warning {
+    color: red;
+    font-weight: bold;
+  }
+
+  button {
+    padding: 6px 12px;
+    font-size: 14px;
+    margin-left: 10px;
+    cursor: pointer;
+  }
+</style>
 </head>
 <body>
 <div class="container">
-  <div id="tournamentInfo" style="margin:10px 0;"></div>
-  <!-- ช่องฝั่งขวา: ฟังก์ชั่น Prize Pool -->
-  <label>Entries <input id="entry" type="number" readonly></label>
-  <label>Rebuy <input id="rebuy" type="number" readonly></label>
-  <label>Add-on <input id="addon" type="number" readonly></label>
-  <label>Buy-in <input id="buyin" type="number" readonly></label>
-  <label>จำนวนผู้ได้รางวัล <input id="nWinners" type="number" min="1" max="30" value="3" style="width:60px;"></label>
-  <div id="prizeResult"></div>
+<div id="tournamentInfo" style="margin:10px 0;"></div>
+<!-- ช่องฝั่งขวา: ฟังก์ชั่น Prize Pool -->
+<label>Entries <input id="entry" readonly="" type="number"/></label>
+<label>Rebuy <input id="rebuy" readonly="" type="number"/></label>
+<label>Add-on <input id="addon" readonly="" type="number"/></label>
+<label>Buy-in <input id="buyin" readonly="" type="number"/></label>
+<label>จำนวนผู้ได้รางวัล <input id="nWinners" max="30" min="1" style="width:60px;" type="number" value="3"/></label>
+<div id="prizeResult"></div>
 </div>
 <script>
 let currentPercents = null;
@@ -237,5 +290,28 @@ window.addEventListener('storage', function(e) {
 });
 </script>
 
+<script>
+  // Realtime listener for prizeSettings
+  function setupRealtimePrizeListener() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tourKey = urlParams.get('tourKey');
+    if (!tourKey) return;
+
+    db.collection("prizeSettings").doc(tourKey)
+      .onSnapshot((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          if (data && data.winnerCount && data.percents) {
+            document.getElementById("winnerCount").value = data.winnerCount;
+            renderTable(data.winnerCount, data.percents);
+          }
+        }
+      });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    setupRealtimePrizeListener();
+  });
+</script>
 </body>
 </html>
