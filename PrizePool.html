@@ -1,57 +1,238 @@
-
-
-
-<!-- Firebase Auth Check -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>Prize Pool</title>
+  <style>
+    body { font-family: 'Prompt', Arial, sans-serif; background: #191c24; color: #fff; }
+    .container { max-width: 550px; margin: 40px auto; background: #23263a; border-radius: 20px; box-shadow: 0 0 24px #1113; padding: 24px 30px 32px 30px; }
+    h2 { margin-top: 0; font-size: 1.45em; }
+    #tournamentInfo { margin-bottom: 15px; padding: 14px; border-radius: 10px; background: #262a3f; font-size: 1.1em; line-height: 1.5; }
+    label { margin-right: 12px; }
+    input[type=number] { width: 90px; background: #191c24; color: #fff; border: 1px solid #334; border-radius: 5px; padding: 6px 8px; margin-bottom: 6px; }
+    button { padding: 7px 15px; background: #27b1ff; color: #fff; border: none; border-radius: 7px; font-size: 1em; margin: 7px 6px 9px 0; cursor: pointer; }
+    button:active { background: #1999db; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #202442; border-radius: 12px; overflow: hidden; }
+    th, td { padding: 8px 5px; text-align: center; }
+    th { background: #293054; color: #f0f0ff; }
+    tr:nth-child(even) { background: #242849; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div id="tournamentInfo" style="margin:10px 0;"></div>
+  <!-- ช่องฝั่งขวา: ฟังก์ชั่น Prize Pool -->
+  <label>Entries <input id="entry" type="number" readonly></label>
+  <label>Rebuy <input id="rebuy" type="number" readonly></label>
+  <label>Add-on <input id="addon" type="number" readonly></label>
+  <label>Buy-in <input id="buyin" type="number" readonly></label>
+  <label>จำนวนผู้ได้รางวัล <input id="nWinners" type="number" min="1" max="30" value="3" style="width:60px;"></label>
+  <div id="prizeResult"></div>
+</div>
 <script>
-  firebase.initializeApp({
-    apiKey: "AIzaSyDqd20lb2fQSMjqsSmzUXXgQFhBNC8sB9g",
-    authDomain: "luxutour-63450.firebaseapp.com",
-    projectId: "luxutour-63450",
-    storageBucket: "luxutour-63450.firebasestorage.app",
-    messagingSenderId: "349190270077",
-    appId: "1:349190270077:web:c52b936bdc2f06c7db1514",
-    measurementId: "G-1F45DPS42M"
-  });
-  firebase.auth().onAuthStateChanged(user => {
-    if (!user) {
-      alert("กรุณาเข้าสู่ระบบก่อนใช้งาน");
-      window.location.href = "login.html";
-    }
-  });
-</script>
+let currentPercents = null;
+let currentAwards = null;
 
-
-<script>
-function renderPrizeTable(prizes) {
-  const tbody = document.getElementById("prizeBody");
-  tbody.innerHTML = "";
-  prizes.forEach((entry, i) => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${i + 1}</td>
-      <td>${entry.percent}%</td>
-      <td>${entry.amount || "-"}</td>
-    `;
-    tbody.appendChild(row);
-  });
+function getSelectedTourKey() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('tour');
 }
 
-async function loadPrizeFromFirestore(tourId) {
-  const doc = await db.collection("tournaments").doc(tourId).get();
-  if (doc.exists) {
-    const data = doc.data();
-    const prize = data.prize || [];
-    renderPrizeTable(prize);
+// ฟังก์ชันใหม่: คำนวณ prize pool และ bounty pool ตาม type และราคาจริง
+function getPrizeAndBountyPool(type, info, players) {
+  const entries = players.length || 0;
+  const rebuys = players.reduce((sum, p) => sum + (p.rebuyUsed || 0), 0);
+  const addons = players.reduce((sum, p) => sum + (p.addonUsed ? 1 : 0), 0);
+
+  const buyinPrice = Number(info.buyIn) || 0;
+  const rebuyPrice = Number(info.rebuy) || buyinPrice;
+  const addonPrice = Number(info.addon) || 0;
+
+  if (type === 'bounty') {
+    const bountyPool = (entries * buyinPrice / 2) + (rebuys * rebuyPrice / 2);
+    const prizePool = bountyPool + (addons * addonPrice);
+    return { prizePool, bountyPool };
+  }
+  // normal หรืออื่น ๆ
+  return { prizePool: (entries + rebuys + addons) * buyinPrice };
+}
+
+function loadTournamentFromLocalStorage() {
+  const selectedKey = getSelectedTourKey();
+  if (selectedKey) {
+    const raw = localStorage.getItem(selectedKey);
+    if (!raw || raw === "null" || raw === "{}") {
+      // เคลียร์ค่า prizeSettings ที่อาจค้าง
+      localStorage.removeItem(selectedKey + '_prizeSettings');
+      document.getElementById('tournamentInfo').innerHTML = '<span style="color:#e56">❌ ไม่พบข้อมูลทัวร์นี้ (ทัวร์ถูกลบออกแล้ว)</span>';
+      document.getElementById('entry').value = '';
+      document.getElementById('rebuy').value = '';
+      document.getElementById('addon').value = '';
+      document.getElementById('buyin').value = '';
+      document.getElementById('nWinners').value = 3;
+      document.getElementById('prizeResult').innerHTML = '';
+      return;
+    }
+    const obj = JSON.parse(raw);
+    const info = obj.info || {};
+    const players = obj.players || [];
+    document.getElementById('entry').value = players.length;
+    document.getElementById('rebuy').value = players.reduce((sum, p) => sum + (p.rebuyUsed || 0), 0);
+    document.getElementById('addon').value = players.reduce((sum, p) => sum + (p.addonUsed ? 1 : 0), 0);
+    document.getElementById('buyin').value = info.buyIn || 0;
+    document.getElementById('tournamentInfo').innerHTML =
+      `<div>🎯 ${info.name || '-'} (${info.type || '-'})</div>\n<div>💵 Buy-in: ${info.buyIn || '-'}</div>`;
+    // Restore prize settings ถ้ามี
+    const settingsRaw = localStorage.getItem(selectedKey + '_prizeSettings');
+    if (settingsRaw) {
+      const settings = JSON.parse(settingsRaw);
+      currentPercents = settings.percents;
+      document.getElementById('nWinners').value = settings.nWinners;
+    } else {
+      currentPercents = null; // ถ้าไม่มีข้อมูล ให้ใช้ default
+      document.getElementById('nWinners').value = 3;
+    }
+    calculate();
   } else {
-    alert("ไม่พบข้อมูลรางวัล");
+    document.getElementById('tournamentInfo').innerHTML = '<span style="color:#e56">❌ ไม่พบข้อมูลทัวร์ใน URL</span>';
   }
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-  if (tourId) {
-    loadPrizeFromFirestore(tourId);
+
+function getDefaultPercents(n) {
+  const presets = {
+    1: [100],
+    2: [65, 35],
+    3: [50, 30, 20],
+    4: [45, 25, 18, 12],
+    5: [40, 23, 16, 12, 9],
+    6: [35, 22, 15, 11, 9, 8],
+    7: [33, 20, 14, 10, 8.5, 7.5, 7],
+    8: [30, 19, 13, 9.5, 8, 7.5, 6.5, 6.5],
+    9: [28, 18, 12.5, 9, 7.5, 7, 6.5, 6, 5.5],
+    10: [27, 17, 12, 9, 7.5, 6.5, 6, 5.5, 5, 4.5]
+  };
+  if (presets[n]) return presets[n];
+  const base = presets[10].slice();
+  while (base.length < n) base.push(1);
+  const sum = base.reduce((a, b) => a + b, 0);
+  return base.map(p => +(p * 100 / sum).toFixed(2));
+}
+
+function savePrizeSettings() {
+  const selectedKey = getSelectedTourKey();
+  if (!selectedKey) return;
+  localStorage.setItem(selectedKey + '_prizeSettings', JSON.stringify({
+    percents: currentPercents,
+    nWinners: Number(document.getElementById('nWinners').value)
+  }));
+}
+
+function calculate() {
+  const selectedKey = getSelectedTourKey();
+  const obj = JSON.parse(localStorage.getItem(selectedKey) || '{}');
+  const info = obj.info || {};
+  const players = obj.players || [];
+  const type = (info.type || 'normal').toLowerCase();
+
+  const { prizePool, bountyPool } = getPrizeAndBountyPool(type, info, players);
+
+  let nWinners = Number(document.getElementById('nWinners').value) || 3;
+  if (nWinners < 1) nWinners = 1;
+  document.getElementById('nWinners').value = nWinners;
+
+  // reset default percents ทุกครั้งถ้า nWinners เปลี่ยน
+  if (!currentPercents || currentPercents.length !== nWinners) {
+    currentPercents = getDefaultPercents(nWinners).slice();
+  }
+  let percents = currentPercents.slice();
+
+  let html = `<b>Prize Pool:</b> ${prizePool ? prizePool.toLocaleString() : 0} บาท<br>`;
+  if (type === 'bounty') {
+    html += `<b>Bounty Pool:</b> ${bountyPool ? bountyPool.toLocaleString() : 0} บาท<br>`;
+  }
+  html += `<table style="width:100%;margin-top:8px;"><tr>
+      <th>อันดับ</th>
+      <th>รางวัล (บาท)</th>
+      <th>%</th>
+    </tr>`;
+  let sum = 0, sumPercent = 0;
+  for (let i = 0; i < nWinners; i++) {
+    const award = Math.round((prizePool || 0) * percents[i] / 100);
+    html += `<tr>
+      <td>${i + 1}</td>
+      <td><input type="number" id="award_${i}" value="${award}" style="width:90px" onchange="updateByAward(${i})"></td>
+      <td><input type="number" id="percent_${i}" value="${percents[i]}" min="0" max="100" step="0.01" style="width:70px" onchange="updateByPercent(${i})">%</td>
+    </tr>`;
+    sum += award;
+    sumPercent += percents[i];
+  }
+  html += `</table>
+    <div style="margin-top:6px;">รวมที่แจก: ${sum.toLocaleString()} บาท 
+    <span style="color:${(sumPercent === 100 ? 'limegreen' : 'red')}">
+      (${sumPercent.toFixed(2)}%)
+    </span></div>`;
+  document.getElementById('prizeResult').innerHTML = html;
+  savePrizeSettings();
+}
+
+function updateByAward(i) {
+  const selectedKey = getSelectedTourKey();
+  const obj = JSON.parse(localStorage.getItem(selectedKey) || '{}');
+  const info = obj.info || {};
+  const players = obj.players || [];
+  const type = (info.type || 'normal').toLowerCase();
+  const { prizePool } = getPrizeAndBountyPool(type, info, players);
+
+  let nWinners = Number(document.getElementById('nWinners').value) || 3;
+  if (nWinners < 1) nWinners = 1;
+  let awards = [];
+  for (let k = 0; k < nWinners; k++) {
+    awards[k] = Number(document.getElementById('award_' + k).value) || 0;
+  }
+  // คำนวณ % เฉพาะแถวที่ถูกแก้ไข
+  currentPercents = [];
+  for (let k = 0; k < nWinners; k++) {
+    if (k === i) {
+      currentPercents[k] = Math.max(0, Math.min(100, Math.round(awards[k] * 10000 / prizePool) / 100));
+    } else {
+      currentPercents[k] = Number(document.getElementById('percent_' + k).value) || 0;
+    }
+  }
+  calculate();
+}
+
+function updateByPercent(i) {
+  let nWinners = Number(document.getElementById('nWinners').value) || 3;
+  if (nWinners < 1) nWinners = 1;
+  currentPercents = [];
+  for (let k = 0; k < nWinners; k++) {
+    currentPercents[k] = Number(document.getElementById('percent_' + k).value) || 0;
+  }
+  calculate();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  loadTournamentFromLocalStorage();
+  ['entry', 'rebuy', 'addon', 'buyin'].forEach(id => {
+    document.getElementById(id).addEventListener('input', calculate);
+  });
+  document.getElementById('nWinners').addEventListener('input', function() {
+    let n = Number(this.value) || 3;
+    if (n < 1) n = 1;
+    this.value = n;
+    currentPercents = null;
+    calculate();
+  });
+});
+window.addEventListener('storage', function(e) {
+  const selectedKey = getSelectedTourKey();
+  if (
+    e.key === selectedKey || 
+    e.key === selectedKey + '_prizeSettings' || 
+    e.key === null
+  ) {
+    loadTournamentFromLocalStorage();
   }
 });
 </script>

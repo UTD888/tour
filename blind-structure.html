@@ -1,61 +1,785 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>Blind Structure Editor</title>
+  <style>
+   body {
+  font-family: 'Segoe UI', 'Inter', Arial, sans-serif;
+  background: #0f1828;
+  color: #f4f7fb;
+  margin: 0;
+  padding: 18px;
+  font-size: 18px;
+}
+
+h2, #tourNameBar {
+  color: #7fd1fa;
+  background: #182b47;
+  border-radius: 8px;
+  padding: 10px 24px;
+  margin-bottom: 14px;
+  font-size: 1.25em;
+  font-weight: 800;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 10px #181d2e55;
+}
+
+table {
+  width: 1040px;
+  min-width: 370px;
+  background: #19263d;
+  color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px #121e35aa;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  margin: 0 auto 18px auto;
+}
+
+th, td {
+  padding: 10px 6px;
+  font-size: 1.08em;
+  text-align: center;
+  border: none;
+}
+
+th {
+  background: linear-gradient(90deg,#2292f4 10%,#052452 95%);
+  color: #fff;
+  font-weight: 900;
+  font-size: 1.10em;
+  letter-spacing: 0.02em;
+}
+
+tr:not(.break) {
+  background: #25345d;
+  border-bottom: 1px solid #234678;
+}
+tr.break {
+  background: #2a395a !important;
+  color: #ffefae;
+  font-weight: bold;
+}
+tr:hover:not(.break) {
+  background: #213055;
+}
+
+input[type="number"], input[type="text"] {
+  width: 68px;
+  padding: 5px 8px;
+  background: #10254d;
+  color: #d0f0ff;
+  border: 1.5px solid #20487e;
+  border-radius: 6px;
+  font-size: 1.01em;
+  font-weight: 600;
+  transition: border 0.18s, background 0.18s;
+}
+input[type="number"]:focus, input[type="text"]:focus {
+  border: 2px solid #37b6fc;
+  background: #14294b;
+  outline: none;
+  color: #fff;
+}
+
+button {
+  font-size: 1em;
+  padding: 7px 18px;
+  background: linear-gradient(90deg,#2285e4 20%,#24bbfa 80%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  margin: 2px 2px 2px 0;
+  font-weight: bold;
+  box-shadow: 0 2px 8px #183a6555;
+  transition: background 0.12s, color 0.12s, box-shadow 0.16s;
+  cursor: pointer;
+}
+button:hover {
+  background: linear-gradient(90deg,#1a75c8 20%,#36e3fc 80%);
+  color: #111;
+  box-shadow: 0 4px 12px #24bbfa40;
+}
+
+.delete-btn {
+  color: #f97a64;
+  background: none;
+  border: none;
+  font-size: 1.2em;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0 7px;
+  transition: color 0.18s;
+}
+.delete-btn:hover {
+  color: #ff3737;
+  background: #242b3f;
+  border-radius: 50%;
+}
+
+.insert-break-btn {
+  background: linear-gradient(90deg,#ffd561 10%,#2292f4 90%);
+  color: #263355;
+  border-radius: 9px;
+  font-size: 0.96em;
+  padding: 5px 12px;
+  font-weight: 700;
+  border: none;
+}
+.insert-break-btn:hover {
+  background: linear-gradient(90deg,#fff9c0 10%,#38d6ff 90%);
+  color: #052452;
+}
+
+#structureTable {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 600px) {
+  table { width: 98vw; min-width: 0; font-size: 11px;}
+  th, td { padding: 2.5px 2.5px; font-size: 11.2px; }
+  input[type="number"], input[type="text"] { width: 34px; font-size: 11px;}
+  button { font-size: 11.5px; padding: 3px 8px;}
+  #tourNameBar { font-size: 1em; padding: 4px; }
+}
+tr.break input[type="text"], tr.break input[type="number"] {
+  background: #fffbe8 !important;
+  color: #362d04 !important;
+  font-weight: 600;
+  border: 1.5px solid #ffe37a;
+  border-radius: 7px;
+  box-shadow: 0 2px 9px #fceabb11;
+}
+tr.break input[type="text"]:focus, tr.break input[type="number"]:focus {
+  border: 2.2px solid #eabf4c;
+  background: #fffdf6 !important;
+  color: #4c380a !important;
+}
+tr.break input[type="text"] {
+  width: 98%;
+  min-width: 170px;
+  max-width: 520px;
+  padding: 7px 14px;
+  font-size: 1.15em;
+  background: #fffbe8 !important;
+  color: #362d04 !important;
+  font-weight: 600;
+  border: 1.5px solid #ffe37a;
+  border-radius: 7px;
+  box-shadow: 0 2px 9px #fceabb11;
+}
+.btn-bar {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin: 22px 0 30px 0;
+}
+.btn-bar button {
+  min-width: 158px;
+  max-width: 320px;
+}
+.btn-danger, button.btn-danger {
+  background: linear-gradient(90deg,#fc3d33 20%,#ffb344 90%) !important;
+  color: #fff !important;
+  border: none;
+  font-weight: 900;
+  box-shadow: 0 1px 8px #ffba3340;
+  margin-left: 14px;
+}
+.btn-danger:hover {
+  background: linear-gradient(90deg,#be1d19 0%,#ffd369 100%) !important;
+  color: #fff !important;
+}
+.btn-bar select {
+  min-width: 210px;
+  max-width: 380px;
+  font-size: 1em;
+  margin-right: 8px;
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: #152e56;
+  color: #c7e6ff;
+  border: 1.4px solid #2791fa;
+}
+.btn-bar {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin: 22px 0 30px 0;
+  flex-wrap: wrap;
+}
+#deleteTemplateModal {
+  display: none; position: fixed; left: 0; top: 0; width: 100vw; height: 100vh;
+  z-index: 99; background: rgba(0,0,0,0.22); align-items: center; justify-content: center;
+}
+#deleteTemplateModal > div {
+  background: #fff; color: #222; border-radius: 13px; padding: 28px 38px 20px 38px;
+  min-width: 250px; box-shadow: 0 4px 36px #2292f466; margin: auto; position: relative; text-align: center;
+}
+@media (max-width: 700px) {
+  #deleteTemplateModal > div { min-width: 90vw; padding: 14px 7vw 14px 7vw; }
+}
+#infoMsg {
+  position: fixed;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99;
+  min-width: 240px;
+  text-align: center;
+  padding: 16px 22px;
+  background: #243b29ee;
+  color: #dcffef;
+  border-radius: 8px;
+  font-size: 1.08em;
+  font-weight: bold;
+  box-shadow: 0 4px 22px #22e34a22;
+  display: none;
+}
+#popupSavedModal {
+  display: none;
+  position: fixed; left: 0; top: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.19); z-index: 999;
+  align-items: center; justify-content: center;
+}
+#popupSavedModal > div {
+  background: #fff;
+  color: #202;
+  border-radius: 15px;
+  padding: 32px 38px 22px 38px;
+  min-width: 250px;
+  max-width: 94vw;
+  box-shadow: 0 6px 32px #2292f488;
+  margin: auto;
+  position: relative;
+  text-align: center;
+  font-family: inherit;
+}
+@media (max-width:600px){
+  #popupSavedModal > div { padding:16px 2vw 16px 2vw; min-width:0; }
+}
+
+
+  </style>
+</head>
+<body> 
+  <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+  <img src="luxu-logo.png" alt="Logo" style="height:140px; border-radius:18px; margin-right:30px;" />
+  <img src="luxu-qr.jpg" alt="QR Code" style="height:120px; border-radius:10px;" />
+</div>
+
+
+  <div id="tourNameBar" style="display:none;text-align: center;"></div>
+  <div id="infoMsg" style="display:none"></div>
+  <div id="deleteTemplateModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; z-index:99; background:rgba(0,0,0,0.22); align-items:center; justify-content:center;">
+  <div style="background:#fff; color:#222; border-radius:13px; padding:28px 38px 20px 38px; min-width:250px; box-shadow:0 4px 36px #2292f466; margin:auto; position:relative; text-align:center;">
+    <h3 style="margin-top:0; color:#1778d0;">ลบแม่แบบ Structure</h3>
+    <select id="deleteTemplateSelect" style="min-width:180px; font-size:1.05em; padding:5px 10px;"></select><br><br>
+    <button onclick="deleteSelectedTemplate()" style="background:#ff7878; color:#fff; border:none; border-radius:7px; padding:7px 28px; font-weight:bold;">ลบ</button>
+    <button onclick="closeDeleteTemplateModal()" style="margin-left:15px; background:#e9e9e9; color:#222; border:none; border-radius:7px; padding:7px 28px;">ยกเลิก</button>
+  </div>
+</div>
+
+  <div class="btn-bar">
+  <select id="templateSelect">
+    <option value="">-- โหลดแม่แบบ Structure --</option>
+  </select>
+  <button onclick="applyTemplate()">โหลดแม่แบบ</button>
+  <button onclick="saveAsTemplate()">💾 บันทึกเป็นแม่แบบ</button>
+  <button onclick="showDeleteTemplateDialog()" ...>ลบแม่แบบ</button>
+  <button onclick="clearStructure()" class="btn-danger">🗑 ล้างข้อมูลทั้งหมด</button>
+</div>
 
 
 
-<!-- Firebase Auth Check -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <table id="structureTable">
+    <thead>
+      <tr>
+        <th>Level</th>
+        <th>SB</th>
+        <th>BB</th>
+        <th>ANTE</th>
+        <th>Duration</th>
+        <th>Time</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="btn-bar">
+  <button onclick="addLevel()">+ Add Level</button>
+  <button onclick="saveToTournament()" ...>✅ บันทึกใส่ทัวร์นี้</button>
+</div>
+<div id="popupSavedModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.19); z-index:999; align-items:center; justify-content:center;">
+  <div style="background:#fff; color:#202; border-radius:15px; padding:32px 38px 22px 38px; min-width:250px; box-shadow:0 6px 32px #2292f488; margin:auto; position:relative; text-align:center;">
+    <div style="font-size:2.4em; margin-bottom:0.4em;">✅</div>
+    <div style="font-size:1.3em; font-weight:bold; margin-bottom:0.8em;">บันทึกสำเร็จ!</div>
+    <div style="font-size:1em; margin-bottom:1.2em;">Blind Structure ได้ถูกบันทึกใส่ทัวร์นี้แล้ว</div>
+    <button onclick="closeSavedModal()" style="background:#2292f4; color:#fff; border:none; border-radius:8px; padding:9px 28px; font-weight:bold; font-size:1.1em;">ปิด</button>
+  </div>
+</div>
+
+
+
+  <!-- ปุ่ม + Add Break ถูกลบแล้ว -->
+
 <script>
-  firebase.initializeApp({
-    apiKey: "AIzaSyDqd20lb2fQSMjqsSmzUXXgQFhBNC8sB9g",
-    authDomain: "luxutour-63450.firebaseapp.com",
-    projectId: "luxutour-63450",
-    storageBucket: "luxutour-63450.firebasestorage.app",
-    messagingSenderId: "349190270077",
-    appId: "1:349190270077:web:c52b936bdc2f06c7db1514",
-    measurementId: "G-1F45DPS42M"
-  });
-  firebase.auth().onAuthStateChanged(user => {
-    if (!user) {
-      alert("กรุณาเข้าสู่ระบบก่อนใช้งาน");
-      window.location.href = "login.html";
+let levelCounter = 1;
+let breakCounter = 1;
+let currentTourKey = localStorage.getItem("currentTourKey") || null;
+
+function showSavedModal() {
+  document.getElementById("popupSavedModal").style.display = "flex";
+  // auto-close ใน 2.4 วินาที
+  setTimeout(closeSavedModal, 5000);
+}
+function closeSavedModal() {
+  document.getElementById("popupSavedModal").style.display = "none";
+}
+
+
+// เช็คว่ามีทัวร์หรือยัง
+function checkTourSelected() {
+  if (!currentTourKey || !localStorage.getItem(currentTourKey)) {
+    document.body.innerHTML = '<div id="infoMsg" style="background:#ffcccc;color:#b00020;font-size:20px;padding:32px 14px;margin-top:40px;border-radius:8px;text-align:center;">กรุณาเลือกทัวร์ที่หน้าหลักก่อน<br><br><a href="index1.html" style="color:#007bff;font-weight:bold;">← กลับหน้าเลือกทัวร์</a></div>';
+    return false;
+  }
+  // แสดงชื่อทัวร์
+  const tourObj = JSON.parse(localStorage.getItem(currentTourKey));
+  document.getElementById("tourNameBar").style.display = "";
+  document.getElementById("tourNameBar").textContent = "📝 กำลังแก้ Blind Structure ให้ทัวร์: " + (tourObj.info?.name || "(ไม่พบชื่อทัวร์)");
+  return true;
+}
+
+// โหลด template รายการแม่แบบ
+function loadTemplates() {
+  const select = document.getElementById("templateSelect");
+  select.innerHTML = `<option value="">-- โหลดแม่แบบ Structure --</option>`;
+  Object.keys(localStorage)
+    .filter(k => k.startsWith("structure_template_"))
+    .forEach(key => {
+      const name = key.replace("structure_template_","");
+      select.innerHTML += `<option value="${key}">${name}</option>`;
+    });
+}
+
+function saveStructureTemp(key = "blind_structure_autosave") {
+  const data = [];
+  document.querySelectorAll("#structureTable tbody tr").forEach(row => {
+    if (row.classList.contains("break")) {
+      data.push({
+        type: "break",
+        note: row.querySelector('input[type="text"]')?.value || "",
+        duration: row.querySelector('input[type="number"]')?.value || 10
+      });
+    } else {
+      data.push({
+        type: "level",
+        sb: row.cells[1].querySelector("input").value,
+        bb: row.cells[2].querySelector("input").value,
+        ante: row.cells[3].querySelector("input").value,
+        duration: row.cells[4].querySelector("input").value
+      });
     }
   });
-</script>
-
-
-<script>
-function renderStructureTable(levels) {
-  const tbody = document.getElementById("structureBody");
+  localStorage.setItem(key, JSON.stringify(data));
+}
+function loadStructureFromData(data) {
+  const tbody = document.querySelector("#structureTable tbody");
   tbody.innerHTML = "";
-  levels.forEach((level, i) => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${i + 1}</td>
-      <td>${level.sb}</td>
-      <td>${level.bb}</td>
-      <td>${level.ante}</td>
-    `;
+  levelCounter = 1;
+  breakCounter = 1;
+  data.forEach(item => {
+    if (item.type === "break") {
+      const row = document.createElement("tr");
+      row.classList.add("break");
+      row.innerHTML = `
+        <td></td>
+        <td colspan="3"><input type="text" placeholder="Break Note" value="${item.note || ''}"></td>
+        <td><input type="number" value="${item.duration || 10}"></td>
+        <td class="time"></td>
+        <td><span class="delete-btn" onclick="deleteRow(this)">🗑</span></td>
+      `;
+      tbody.appendChild(row);
+    } else {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>Level ${levelCounter++}</td>
+        <td><input type="text" value="${item.sb || ''}"></td>
+        <td><input type="text" value="${item.bb || ''}"></td>
+        <td><input type="text" value="${item.ante || ''}"></td>
+        <td><input type="number" value="${item.duration || 10}"></td>
+        <td class="time"></td>
+        <td>
+          <span class="delete-btn" onclick="deleteRow(this)">🗑</span>
+          <button class="insert-break-btn" onclick="insertBreakAfter(this)">+Break</button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    }
+  });
+  attachFormatHandlers();
+  updateTimeColumn();
+}
+
+
+function loadStructureTemp(key = "blind_structure_autosave") {
+  const data = JSON.parse(localStorage.getItem(key) || "[]");
+  const tbody = document.querySelector("#structureTable tbody");
+  tbody.innerHTML = "";
+  levelCounter = 1;
+  breakCounter = 1;
+  data.forEach(item => {
+    if (item.type === "break") {
+      const row = document.createElement("tr");
+      row.classList.add("break");
+      row.innerHTML = `
+        <td></td>
+        <td colspan="3"><input type="text" placeholder="Break Note" value="${item.note || ''}"></td>
+        <td><input type="number" value="${item.duration || 10}"></td>
+        <td class="time"></td>
+        <td><span class="delete-btn" onclick="deleteRow(this)">🗑</span></td>
+      `;
+      tbody.appendChild(row);
+    } else {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>Level ${levelCounter++}</td>
+        <td><input type="text" value="${item.sb || ''}"></td>
+        <td><input type="text" value="${item.bb || ''}"></td>
+        <td><input type="text" value="${item.ante || ''}"></td>
+        <td><input type="number" value="${item.duration || 10}"></td>
+        <td class="time"></td>
+        <td>
+          <span class="delete-btn" onclick="deleteRow(this)">🗑</span>
+          <button class="insert-break-btn" onclick="insertBreakAfter(this)">+Break</button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    }
+  });
+  attachFormatHandlers();
+  updateTimeColumn();
+}
+
+// บันทึกใส่ทัวร์ (object ทัวร์)
+function saveToTournament() {
+  if (!currentTourKey || !localStorage.getItem(currentTourKey)) return;
+  saveStructureTemp();
+  const data = JSON.parse(localStorage.getItem("blind_structure_autosave") || "[]");
+  const obj = JSON.parse(localStorage.getItem(currentTourKey));
+  obj.blindStructure = data;
+  localStorage.setItem(currentTourKey, JSON.stringify(obj));
+  localStorage.removeItem('blind_structure_autosave');
+  showSavedModal();  // เรียก popup แจ้งเตือน
+}
+
+
+
+function saveAsTemplate() {
+  saveStructureTemp();
+  const name = prompt("ตั้งชื่อแม่แบบ Structure:");
+  if (!name) return;
+  const data = JSON.parse(localStorage.getItem("blind_structure_autosave") || "[]");
+  localStorage.setItem("structure_template_" + name, JSON.stringify(data));
+  loadTemplates();
+  alert("บันทึกแม่แบบ Structure แล้ว: " + name);
+}
+
+function applyTemplate() {
+  const key = document.getElementById("templateSelect").value;
+  if (!key) return;
+  if (!confirm("โหลดแม่แบบนี้มาใช้กับทัวร์นี้? (ข้อมูลในตารางจะถูกแทนที่)")) return;
+  loadStructureTemp(key);
+  saveStructureTemp(); // autosave ทับเดิม
+}
+
+function clearStructure() {
+  if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการล้างข้อมูลตาราง Blind Structure นี้?")) return;
+  // ลบเฉพาะของทัวร์นี้ (ไม่ยุ่งกับ template)
+  localStorage.removeItem("blind_structure_autosave");
+  loadStructureTemp();
+}
+
+// เพิ่ม-ลบ-จัดการแถว (เหมือนเดิม)
+function addLevel() {
+  const tbody = document.querySelector("#structureTable tbody");
+  let firstDuration = "10";
+  const firstRow = document.querySelector("#structureTable tbody tr:not(.break)");
+  if (firstRow) {
+    firstDuration = firstRow.cells[4].querySelector("input").value || "10";
+  }
+  const row = document.createElement("tr");
+  row.innerHTML = `
+    <td>Level ${levelCounter++}</td>
+    <td><input type="text"></td>
+    <td><input type="text"></td>
+    <td><input type="text"></td>
+    <td><input type="number" value="${firstDuration}"></td>
+    <td class="time"></td>
+    <td>
+      <span class="delete-btn" onclick="deleteRow(this)">🗑</span>
+      <button class="insert-break-btn" onclick="insertBreakAfter(this)">+Break</button>
+    </td>
+  `;
+  tbody.appendChild(row);
+  saveStructureTemp();
+  attachFormatHandlers();
+  updateTimeColumn();
+}
+
+
+function insertBreakAfter(el) {
+  const tr = el.closest("tr");
+  const tbody = tr.parentNode;
+  const idx = Array.prototype.indexOf.call(tbody.children, tr);
+
+  // หา duration ของแถวแรก (default)
+  let firstDuration = "10";
+  const firstRow = document.querySelector("#structureTable tbody tr:not(.break)");
+  if (firstRow) {
+    firstDuration = firstRow.cells[4].querySelector("input").value || "10";
+  }
+
+  // สร้างแถว break ใหม่
+  const row = document.createElement("tr");
+  row.classList.add("break");
+  row.innerHTML = `
+    <td></td>
+    <td colspan="3"><input type="text" placeholder="Break Note"></td>
+    <td><input type="number" value="${firstDuration}"></td>
+    <td class="time"></td>
+    <td><span class="delete-btn" onclick="deleteRow(this)">🗑</span></td>
+  `;
+  // แทรกหลัง tr
+  if (tbody.children[idx + 1]) {
+    tbody.insertBefore(row, tbody.children[idx + 1]);
+  } else {
     tbody.appendChild(row);
+  }
+  saveStructureTemp();
+  renumber();
+  attachFormatHandlers();
+  updateTimeColumn();
+}
+
+function deleteRow(el) {
+  el.closest("tr").remove();
+  renumber();
+  saveStructureTemp();
+  updateTimeColumn();
+}
+function renumber() {
+  levelCounter = 1;
+  breakCounter = 1;
+  document.querySelectorAll("#structureTable tbody tr").forEach(row => {
+    if (row.classList.contains("break")) {
+      row.cells[0].textContent = `Break ${breakCounter++}`;
+    } else {
+      row.cells[0].textContent = `Level ${levelCounter++}`;
+    }
   });
 }
+function formatK(value) {
+  const num = parseFloat(value);
+  if (isNaN(num)) return value;
+  if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+  return num.toString();
+}
+function parseK(input) {
+  const val = input.toLowerCase().trim();
+  if (val === '') return '';
+  if (val.endsWith('k')) return parseFloat(val) * 1000;
+  return parseFloat(val);
+}
+function attachFormatHandlers() {
+  const rows = document.querySelectorAll('#structureTable tbody tr');
+  rows.forEach((row, rowIndex) => {
+    if (!row.classList.contains("break")) {
+      const sbInput = row.cells[1].querySelector("input");
+      const bbInput = row.cells[2].querySelector("input");
+      const anteInput = row.cells[3].querySelector("input");
+      const durationInput = row.cells[4].querySelector("input");
 
-async function loadStructureFromFirestore(tourId) {
-  const doc = await db.collection("tournaments").doc(tourId).get();
-  if (doc.exists) {
-    const data = doc.data();
-    const structure = data.structure || [];
-    renderStructureTable(structure);
+      // === Auto-fill เมื่อกรอก SB ===
+      if (sbInput) {
+        sbInput.onblur = function () {
+          const sb = parseK(sbInput.value);
+          if (!isNaN(sb)) {
+            sbInput.value = formatK(sb);
+            if (bbInput) bbInput.value = formatK(sb * 2);
+            if (bbInput && anteInput) anteInput.value = formatK(sb * 2);
+            // Auto-fill duration = duration แถวแรกเสมอ
+            const firstRow = document.querySelector("#structureTable tbody tr:not(.break)");
+            if (firstRow && durationInput && rowIndex !== 0) {
+              const firstDuration = firstRow.cells[4].querySelector("input").value;
+              if (firstDuration) durationInput.value = firstDuration;
+            }
+            saveStructureTemp();
+            updateTimeColumn();
+          }
+        };
+        sbInput.onfocus = function () {
+          const parsed = parseK(sbInput.value);
+          if (parsed !== '') sbInput.value = parsed;
+        };
+        sbInput.oninput = function () {
+          saveStructureTemp();
+          updateTimeColumn();
+        };
+
+        // Enter เพื่อสร้างแถวใหม่
+        sbInput.onkeydown = function (e) {
+          if (e.key === "Enter" && rowIndex === rows.length - 1) {
+            addLevel();
+            setTimeout(() => {
+              const tbody = document.querySelector("#structureTable tbody");
+              const newRow = tbody.children[tbody.children.length - 1];
+              if (newRow) {
+                const newSb = newRow.cells[1].querySelector("input");
+                if (newSb) newSb.focus();
+              }
+            }, 100);
+            e.preventDefault();
+          }
+        };
+      }
+
+      // ช่อง BB, ANTE, DURATION
+      [bbInput, anteInput, durationInput].forEach(input => {
+        if (input) {
+          input.onblur = function () {
+            input.value = formatK(parseK(input.value));
+            saveStructureTemp();
+            updateTimeColumn();
+          };
+          input.onfocus = function () {
+            const parsed = parseK(input.value);
+            if (parsed !== '') input.value = parsed;
+          };
+          input.oninput = function () {
+            saveStructureTemp();
+            updateTimeColumn();
+          };
+          input.onkeydown = function (e) {
+            if (e.key === "Enter" && rowIndex === rows.length - 1) {
+              addLevel();
+              setTimeout(() => {
+                const tbody = document.querySelector("#structureTable tbody");
+                const newRow = tbody.children[tbody.children.length - 1];
+                if (newRow) {
+                  const newSb = newRow.cells[1].querySelector("input");
+                  if (newSb) newSb.focus();
+                }
+              }, 100);
+              e.preventDefault();
+            }
+          };
+        }
+      });
+    } else {
+      // BREAK ROW (ช่อง note, duration)
+      const noteInput = row.querySelector('input[type="text"]');
+      const durationInput = row.querySelector('input[type="number"]');
+      if (durationInput) {
+        durationInput.onfocus = function () {
+          if (!durationInput.value || durationInput.value === "0") {
+            const firstRow = document.querySelector("#structureTable tbody tr:not(.break)");
+            const firstDuration = firstRow ? firstRow.cells[4].querySelector("input").value : "10";
+            durationInput.value = firstDuration || "10";
+          }
+        };
+        durationInput.onblur = function () {
+          saveStructureTemp();
+          updateTimeColumn();
+        };
+        durationInput.oninput = function () {
+          saveStructureTemp();
+          updateTimeColumn();
+        };
+      }
+      if (noteInput) {
+        noteInput.onfocus = function () {
+          if (durationInput && (!durationInput.value || durationInput.value === "0")) {
+            const firstRow = document.querySelector("#structureTable tbody tr:not(.break)");
+            const firstDuration = firstRow ? firstRow.cells[4].querySelector("input").value : "10";
+            durationInput.value = firstDuration || "10";
+          }
+        };
+        noteInput.oninput = function () {
+          saveStructureTemp();
+          updateTimeColumn();
+        };
+      }
+    }
+  });
+}
+function updateInputsAfterAdd() {
+  attachFormatHandlers();
+  updateTimeColumn();
+}
+// เวลาอัปเดตตาราง
+function updateTimeColumn() {
+  let sum = 0;
+  document.querySelectorAll("#structureTable tbody tr").forEach(row => {
+    const duration = parseInt(row.querySelector('input[type="number"]')?.value) || 0;
+    sum += duration;
+    const h = Math.floor(sum / 60).toString();
+    const m = (sum % 60).toString().padStart(2, '0');
+    if (row.cells[5]) row.cells[5].textContent = `${h}:${m}`;
+  });
+}
+// รีโหลดหน้า พร้อมโครงสร้าง (ถ้ามี)
+window.addEventListener("DOMContentLoaded", () => {
+  if (!checkTourSelected()) return;
+  loadTemplates();
+  // โหลดจาก object ทัวร์ก่อนเสมอ ไม่ใช้ temp ก่อน
+  const tourObj = JSON.parse(localStorage.getItem(currentTourKey));
+  if (tourObj.blindStructure && Array.isArray(tourObj.blindStructure)) {
+    loadStructureFromData(tourObj.blindStructure);
   } else {
-    alert("ไม่พบข้อมูลโครงสร้าง Blind");
+    loadStructureTemp(); // ถ้าไม่มีในทัวร์ ให้โหลดจาก temp (กรณี template ใหม่/ทัวร์ใหม่)
   }
+  attachFormatHandlers();
+  updateTimeColumn();
+});
+function showDeleteTemplateDialog() {
+  // ดึง template key ทั้งหมด
+  const keys = Object.keys(localStorage).filter(k=>k.startsWith("structure_template_"));
+  const select = document.getElementById('deleteTemplateSelect');
+  select.innerHTML = '';
+  if (keys.length === 0) {
+    select.innerHTML = '<option value="">(ไม่มีแม่แบบให้ลบ)</option>';
+  } else {
+    keys.forEach(k => {
+      const name = k.replace('structure_template_','');
+      select.innerHTML += `<option value="${k}">${name}</option>`;
+    });
+  }
+  document.getElementById('deleteTemplateModal').style.display = 'flex';
+}
+function closeDeleteTemplateModal() {
+  document.getElementById('deleteTemplateModal').style.display = 'none';
+}
+function deleteSelectedTemplate() {
+  const select = document.getElementById('deleteTemplateSelect');
+  const key = select.value;
+  if (!key) return alert('กรุณาเลือกแม่แบบ');
+  if (!confirm('ลบแม่แบบนี้?')) return;
+  localStorage.removeItem(key);
+  closeDeleteTemplateModal();
+  loadTemplates();
+  alert('ลบแม่แบบเรียบร้อยแล้ว');
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-  if (tourId) {
-    loadStructureFromFirestore(tourId);
-  }
-});
-</script>
 
+</script>
 </body>
 </html>

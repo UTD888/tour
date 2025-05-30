@@ -1,44 +1,48 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Login - LuxuTour</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyDqd20lb2fQSMjqsSmzUXXgQFhBNC8sB9g",
-      authDomain: "luxutour-63450.firebaseapp.com",
-      projectId: "luxutour-63450",
-      storageBucket: "luxutour-63450.firebasestorage.app",
-      messagingSenderId: "349190270077",
-      appId: "1:349190270077:web:c52b936bdc2f06c7db1514",
-      measurementId: "G-1F45DPS42M"
-    };
-    firebase.initializeApp(firebaseConfig);
-
-    function login() {
-      const email = document.getElementById("username").value;
-      const password = document.getElementById("password").value;
-      firebase.auth().signInWithEmailAndPassword(email, password)
-        .then(() => {
-          localStorage.setItem("loggedIn", "true");
-          window.location.href = "index.html";
-        })
-        .catch((error) => {
-          alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
-          console.error(error);
-        });
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 80px; background: #111; color: white; }
+    input, button {
+      padding: 10px;
+      margin: 8px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
     }
-  </script>
+    input { width: 200px; background: #333; color: white; }
+    button { background: #28a745; color: white; cursor: pointer; }
+    button:hover { background: #218838; }
+  </style>
 </head>
 <body>
-  <h2>Login</h2>
-  <label for="username">Email:</label>
-  <input type="text" id="username" placeholder="email" /><br/>
-  <label for="password">Password:</label>
-  <input type="password" id="password" placeholder="password" /><br/>
+  <h2>เข้าสู่ระบบ</h2>
+  <div><img src="luxu-logo.png" style="display: flexbox; width: 10%;"></div>
+  <input id="username" placeholder="Username"><br>
+  <input id="password" type="password" placeholder="Password"><br>
   <button onclick="login()">Login</button>
+
+  <script>
+    const USERS = {
+      "admin": "1234",
+      "dealer": "5678",
+      "manager": "9999"
+    };
+
+    function login() {
+      const user = document.getElementById("username").value.trim();
+      const pass = document.getElementById("password").value.trim();
+
+      if (USERS[user] && USERS[user] === pass) {
+        localStorage.setItem("loggedIn", "true");
+        localStorage.setItem("loggedUser", user);
+        window.location.href = "index.html";
+      } else {
+        alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+      }
+    }
+  </script>
 </body>
 </html>
