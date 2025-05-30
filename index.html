@@ -1,0 +1,356 @@
+
+
+
+<!-- Firebase Auth Check -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js">
+// ✅ Firestore Tournament Management
+async function createTournamentInFirestore(info) {
+  const docRef = await db.collection("tournaments").add({ info, players: [] });
+  return docRef.id;
+}
+
+async function loadTournamentsFromFirestore() {
+  const snap = await db.collection("tournaments").get();
+  const list = document.getElementById("loadTourList");
+  list.innerHTML = "";
+  snap.forEach(doc => {
+    const name = doc.data().info?.name || "(ไม่มีชื่อ)";
+    list.innerHTML += `<button class='modal-btn' onclick="selectTourFromFirestore('${doc.id}')">${name}</button>`;
+  });
+}
+
+async function selectTourFromFirestore(id) {
+  const doc = await db.collection("tournaments").doc(id).get();
+  if (doc.exists) {
+    const tourObj = doc.data();
+    currentTourId = id;
+    window.localStorage.setItem("currentTourId", id);  // ใช้ชั่วคราวสำหรับหน้าอื่น
+    renderTourInfoBox(tourObj.info);
+    document.getElementById('tourInfoBox').classList.remove('hidden');
+    document.getElementById('playerBox').style.display = '';
+    document.getElementById('startTourBox').classList.add('hidden');
+    document.getElementById('tourInfoEditBox').classList.add('hidden');
+    currentPlayers = tourObj.players || [];
+    renderEntries();
+  }
+}
+
+async function deleteTournamentFromFirestore(id) {
+  if (confirm("ยืนยันการลบทัวร์นี้?")) {
+    await db.collection("tournaments").doc(id).delete();
+    alert("ลบแล้ว");
+    window.localStorage.removeItem("currentTourId");
+    location.reload();
+  }
+}
+
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js">
+// ✅ Firestore Tournament Management
+async function createTournamentInFirestore(info) {
+  const docRef = await db.collection("tournaments").add({ info, players: [] });
+  return docRef.id;
+}
+
+async function loadTournamentsFromFirestore() {
+  const snap = await db.collection("tournaments").get();
+  const list = document.getElementById("loadTourList");
+  list.innerHTML = "";
+  snap.forEach(doc => {
+    const name = doc.data().info?.name || "(ไม่มีชื่อ)";
+    list.innerHTML += `<button class='modal-btn' onclick="selectTourFromFirestore('${doc.id}')">${name}</button>`;
+  });
+}
+
+async function selectTourFromFirestore(id) {
+  const doc = await db.collection("tournaments").doc(id).get();
+  if (doc.exists) {
+    const tourObj = doc.data();
+    currentTourId = id;
+    window.localStorage.setItem("currentTourId", id);  // ใช้ชั่วคราวสำหรับหน้าอื่น
+    renderTourInfoBox(tourObj.info);
+    document.getElementById('tourInfoBox').classList.remove('hidden');
+    document.getElementById('playerBox').style.display = '';
+    document.getElementById('startTourBox').classList.add('hidden');
+    document.getElementById('tourInfoEditBox').classList.add('hidden');
+    currentPlayers = tourObj.players || [];
+    renderEntries();
+  }
+}
+
+async function deleteTournamentFromFirestore(id) {
+  if (confirm("ยืนยันการลบทัวร์นี้?")) {
+    await db.collection("tournaments").doc(id).delete();
+    alert("ลบแล้ว");
+    window.localStorage.removeItem("currentTourId");
+    location.reload();
+  }
+}
+
+</script>
+<script>
+  firebase.initializeApp({
+    apiKey: "AIzaSyDqd20lb2fQSMjqsSmzUXXgQFhBNC8sB9g",
+    authDomain: "luxutour-63450.firebaseapp.com",
+    projectId: "luxutour-63450",
+    storageBucket: "luxutour-63450.firebasestorage.app",
+    messagingSenderId: "349190270077",
+    appId: "1:349190270077:web:c52b936bdc2f06c7db1514",
+    measurementId: "G-1F45DPS42M"
+  });
+  firebase.auth().onAuthStateChanged(user => {
+    if (!user) {
+      alert("กรุณาเข้าสู่ระบบก่อนใช้งาน");
+      window.location.href = "login.html";
+    }
+  });
+
+// ✅ Firestore Tournament Management
+async function createTournamentInFirestore(info) {
+  const docRef = await db.collection("tournaments").add({ info, players: [] });
+  return docRef.id;
+}
+
+async function loadTournamentsFromFirestore() {
+  const snap = await db.collection("tournaments").get();
+  const list = document.getElementById("loadTourList");
+  list.innerHTML = "";
+  snap.forEach(doc => {
+    const name = doc.data().info?.name || "(ไม่มีชื่อ)";
+    list.innerHTML += `<button class='modal-btn' onclick="selectTourFromFirestore('${doc.id}')">${name}</button>`;
+  });
+}
+
+async function selectTourFromFirestore(id) {
+  const doc = await db.collection("tournaments").doc(id).get();
+  if (doc.exists) {
+    const tourObj = doc.data();
+    currentTourId = id;
+    window.localStorage.setItem("currentTourId", id);  // ใช้ชั่วคราวสำหรับหน้าอื่น
+    renderTourInfoBox(tourObj.info);
+    document.getElementById('tourInfoBox').classList.remove('hidden');
+    document.getElementById('playerBox').style.display = '';
+    document.getElementById('startTourBox').classList.add('hidden');
+    document.getElementById('tourInfoEditBox').classList.add('hidden');
+    currentPlayers = tourObj.players || [];
+    renderEntries();
+  }
+}
+
+async function deleteTournamentFromFirestore(id) {
+  if (confirm("ยืนยันการลบทัวร์นี้?")) {
+    await db.collection("tournaments").doc(id).delete();
+    alert("ลบแล้ว");
+    window.localStorage.removeItem("currentTourId");
+    location.reload();
+  }
+}
+
+</script>
+
+<button id="logoutBtn" onclick="logout()" style="position:fixed;top:20px;right:20px;z-index:9999;display:none;">Logout</button>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js">
+// ✅ Firestore Tournament Management
+async function createTournamentInFirestore(info) {
+  const docRef = await db.collection("tournaments").add({ info, players: [] });
+  return docRef.id;
+}
+
+async function loadTournamentsFromFirestore() {
+  const snap = await db.collection("tournaments").get();
+  const list = document.getElementById("loadTourList");
+  list.innerHTML = "";
+  snap.forEach(doc => {
+    const name = doc.data().info?.name || "(ไม่มีชื่อ)";
+    list.innerHTML += `<button class='modal-btn' onclick="selectTourFromFirestore('${doc.id}')">${name}</button>`;
+  });
+}
+
+async function selectTourFromFirestore(id) {
+  const doc = await db.collection("tournaments").doc(id).get();
+  if (doc.exists) {
+    const tourObj = doc.data();
+    currentTourId = id;
+    window.localStorage.setItem("currentTourId", id);  // ใช้ชั่วคราวสำหรับหน้าอื่น
+    renderTourInfoBox(tourObj.info);
+    document.getElementById('tourInfoBox').classList.remove('hidden');
+    document.getElementById('playerBox').style.display = '';
+    document.getElementById('startTourBox').classList.add('hidden');
+    document.getElementById('tourInfoEditBox').classList.add('hidden');
+    currentPlayers = tourObj.players || [];
+    renderEntries();
+  }
+}
+
+async function deleteTournamentFromFirestore(id) {
+  if (confirm("ยืนยันการลบทัวร์นี้?")) {
+    await db.collection("tournaments").doc(id).delete();
+    alert("ลบแล้ว");
+    window.localStorage.removeItem("currentTourId");
+    location.reload();
+  }
+}
+
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js">
+// ✅ Firestore Tournament Management
+async function createTournamentInFirestore(info) {
+  const docRef = await db.collection("tournaments").add({ info, players: [] });
+  return docRef.id;
+}
+
+async function loadTournamentsFromFirestore() {
+  const snap = await db.collection("tournaments").get();
+  const list = document.getElementById("loadTourList");
+  list.innerHTML = "";
+  snap.forEach(doc => {
+    const name = doc.data().info?.name || "(ไม่มีชื่อ)";
+    list.innerHTML += `<button class='modal-btn' onclick="selectTourFromFirestore('${doc.id}')">${name}</button>`;
+  });
+}
+
+async function selectTourFromFirestore(id) {
+  const doc = await db.collection("tournaments").doc(id).get();
+  if (doc.exists) {
+    const tourObj = doc.data();
+    currentTourId = id;
+    window.localStorage.setItem("currentTourId", id);  // ใช้ชั่วคราวสำหรับหน้าอื่น
+    renderTourInfoBox(tourObj.info);
+    document.getElementById('tourInfoBox').classList.remove('hidden');
+    document.getElementById('playerBox').style.display = '';
+    document.getElementById('startTourBox').classList.add('hidden');
+    document.getElementById('tourInfoEditBox').classList.add('hidden');
+    currentPlayers = tourObj.players || [];
+    renderEntries();
+  }
+}
+
+async function deleteTournamentFromFirestore(id) {
+  if (confirm("ยืนยันการลบทัวร์นี้?")) {
+    await db.collection("tournaments").doc(id).delete();
+    alert("ลบแล้ว");
+    window.localStorage.removeItem("currentTourId");
+    location.reload();
+  }
+}
+
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js">
+// ✅ Firestore Tournament Management
+async function createTournamentInFirestore(info) {
+  const docRef = await db.collection("tournaments").add({ info, players: [] });
+  return docRef.id;
+}
+
+async function loadTournamentsFromFirestore() {
+  const snap = await db.collection("tournaments").get();
+  const list = document.getElementById("loadTourList");
+  list.innerHTML = "";
+  snap.forEach(doc => {
+    const name = doc.data().info?.name || "(ไม่มีชื่อ)";
+    list.innerHTML += `<button class='modal-btn' onclick="selectTourFromFirestore('${doc.id}')">${name}</button>`;
+  });
+}
+
+async function selectTourFromFirestore(id) {
+  const doc = await db.collection("tournaments").doc(id).get();
+  if (doc.exists) {
+    const tourObj = doc.data();
+    currentTourId = id;
+    window.localStorage.setItem("currentTourId", id);  // ใช้ชั่วคราวสำหรับหน้าอื่น
+    renderTourInfoBox(tourObj.info);
+    document.getElementById('tourInfoBox').classList.remove('hidden');
+    document.getElementById('playerBox').style.display = '';
+    document.getElementById('startTourBox').classList.add('hidden');
+    document.getElementById('tourInfoEditBox').classList.add('hidden');
+    currentPlayers = tourObj.players || [];
+    renderEntries();
+  }
+}
+
+async function deleteTournamentFromFirestore(id) {
+  if (confirm("ยืนยันการลบทัวร์นี้?")) {
+    await db.collection("tournaments").doc(id).delete();
+    alert("ลบแล้ว");
+    window.localStorage.removeItem("currentTourId");
+    location.reload();
+  }
+}
+
+</script>
+<script>
+  firebase.initializeApp({
+    apiKey: "AIzaSyDqd20lb2fQSMjqsSmzUXXgQFhBNC8sB9g",
+    authDomain: "luxutour-63450.firebaseapp.com",
+    projectId: "luxutour-63450",
+    storageBucket: "luxutour-63450.firebasestorage.app",
+    messagingSenderId: "349190270077",
+    appId: "1:349190270077:web:c52b936bdc2f06c7db1514",
+    measurementId: "G-1F45DPS42M"
+  });
+
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  auth.onAuthStateChanged(user => {
+    if (!user) {
+      window.location.href = "login.html";
+    } else {
+      document.getElementById("logoutBtn").style.display = "inline-block";
+    }
+  });
+
+  function logout() {
+    auth.signOut().then(() => {
+      window.location.href = "login.html";
+    });
+  }
+
+// ✅ Firestore Tournament Management
+async function createTournamentInFirestore(info) {
+  const docRef = await db.collection("tournaments").add({ info, players: [] });
+  return docRef.id;
+}
+
+async function loadTournamentsFromFirestore() {
+  const snap = await db.collection("tournaments").get();
+  const list = document.getElementById("loadTourList");
+  list.innerHTML = "";
+  snap.forEach(doc => {
+    const name = doc.data().info?.name || "(ไม่มีชื่อ)";
+    list.innerHTML += `<button class='modal-btn' onclick="selectTourFromFirestore('${doc.id}')">${name}</button>`;
+  });
+}
+
+async function selectTourFromFirestore(id) {
+  const doc = await db.collection("tournaments").doc(id).get();
+  if (doc.exists) {
+    const tourObj = doc.data();
+    currentTourId = id;
+    window.localStorage.setItem("currentTourId", id);  // ใช้ชั่วคราวสำหรับหน้าอื่น
+    renderTourInfoBox(tourObj.info);
+    document.getElementById('tourInfoBox').classList.remove('hidden');
+    document.getElementById('playerBox').style.display = '';
+    document.getElementById('startTourBox').classList.add('hidden');
+    document.getElementById('tourInfoEditBox').classList.add('hidden');
+    currentPlayers = tourObj.players || [];
+    renderEntries();
+  }
+}
+
+async function deleteTournamentFromFirestore(id) {
+  if (confirm("ยืนยันการลบทัวร์นี้?")) {
+    await db.collection("tournaments").doc(id).delete();
+    alert("ลบแล้ว");
+    window.localStorage.removeItem("currentTourId");
+    location.reload();
+  }
+}
+
+</script>
+
+</body>
+</html>
+

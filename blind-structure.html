@@ -1,0 +1,61 @@
+
+
+
+<!-- Firebase Auth Check -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script>
+  firebase.initializeApp({
+    apiKey: "AIzaSyDqd20lb2fQSMjqsSmzUXXgQFhBNC8sB9g",
+    authDomain: "luxutour-63450.firebaseapp.com",
+    projectId: "luxutour-63450",
+    storageBucket: "luxutour-63450.firebasestorage.app",
+    messagingSenderId: "349190270077",
+    appId: "1:349190270077:web:c52b936bdc2f06c7db1514",
+    measurementId: "G-1F45DPS42M"
+  });
+  firebase.auth().onAuthStateChanged(user => {
+    if (!user) {
+      alert("กรุณาเข้าสู่ระบบก่อนใช้งาน");
+      window.location.href = "login.html";
+    }
+  });
+</script>
+
+
+<script>
+function renderStructureTable(levels) {
+  const tbody = document.getElementById("structureBody");
+  tbody.innerHTML = "";
+  levels.forEach((level, i) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${i + 1}</td>
+      <td>${level.sb}</td>
+      <td>${level.bb}</td>
+      <td>${level.ante}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+async function loadStructureFromFirestore(tourId) {
+  const doc = await db.collection("tournaments").doc(tourId).get();
+  if (doc.exists) {
+    const data = doc.data();
+    const structure = data.structure || [];
+    renderStructureTable(structure);
+  } else {
+    alert("ไม่พบข้อมูลโครงสร้าง Blind");
+  }
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  if (tourId) {
+    loadStructureFromFirestore(tourId);
+  }
+});
+</script>
+
+</body>
+</html>

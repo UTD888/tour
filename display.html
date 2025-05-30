@@ -1,0 +1,57 @@
+
+
+
+<!-- Firebase Auth Check -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script>
+  firebase.initializeApp({
+    apiKey: "AIzaSyDqd20lb2fQSMjqsSmzUXXgQFhBNC8sB9g",
+    authDomain: "luxutour-63450.firebaseapp.com",
+    projectId: "luxutour-63450",
+    storageBucket: "luxutour-63450.firebasestorage.app",
+    messagingSenderId: "349190270077",
+    appId: "1:349190270077:web:c52b936bdc2f06c7db1514",
+    measurementId: "G-1F45DPS42M"
+  });
+  firebase.auth().onAuthStateChanged(user => {
+    if (!user) {
+      alert("กรุณาเข้าสู่ระบบก่อนใช้งาน");
+      window.location.href = "login.html";
+    }
+  });
+</script>
+
+
+<script>
+function renderPlayers(players) {
+  const container = document.getElementById("playerList");
+  container.innerHTML = "";
+  players.forEach((player, i) => {
+    const el = document.createElement("div");
+    el.className = "player-entry";
+    el.innerHTML = `<b>${i + 1}.</b> ${player.name} - ${player.stack} chips (${player.status})`;
+    container.appendChild(el);
+  });
+}
+
+async function loadPlayersFromFirestore(tourId) {
+  const doc = await db.collection("tournaments").doc(tourId).get();
+  if (doc.exists) {
+    const data = doc.data();
+    const players = data.players || [];
+    renderPlayers(players);
+  } else {
+    alert("ไม่พบข้อมูลทัวร์นาเมนต์");
+  }
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  if (tourId) {
+    loadPlayersFromFirestore(tourId);
+  }
+});
+</script>
+
+</body>
+</html>
