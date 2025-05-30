@@ -410,5 +410,32 @@ firebase.auth().onAuthStateChanged(user => {
   ["entryFee", "rebuyFee", "addonFee", "guarantee", "totalEntry", "prizeNote"].forEach(bindLiveUpdate);
 </script>
 
+
+<script>
+  const tourKey = sessionStorage.getItem("currentTourKey");
+  const tourRef = db.collection("tournaments").doc(tourKey);
+
+  function savePrizeSettings() {
+    const update = {
+      "prizeSettings.entryFee": document.getElementById("entryFee").value,
+      "prizeSettings.rebuyFee": document.getElementById("rebuyFee").value,
+      "prizeSettings.addonFee": document.getElementById("addonFee").value,
+      "prizeSettings.guarantee": document.getElementById("guarantee").value,
+      "prizeSettings.totalEntry": document.getElementById("totalEntry").value,
+      "prizeSettings.prizeNote": document.getElementById("prizeNote").value
+    };
+    tourRef.update(update).then(() => alert("Prize Settings Saved!"));
+  }
+
+  function calculatePrize() {
+    const entry = parseFloat(document.getElementById("entryFee").value) || 0;
+    const total = parseInt(document.getElementById("totalEntry").value) || 0;
+    const prize = entry * total;
+    alert("Estimated Total Prize Pool: $" + prize.toFixed(2));
+  }
+</script>
+<button onclick="savePrizeSettings()">💾 Save Settings</button>
+<button onclick="calculatePrize()">📊 Calculate</button>
+
 </body>
 </html>

@@ -1128,5 +1128,78 @@ firebase.auth().onAuthStateChanged(user => {
   }
 });
 </script>
+
+    <script>
+      firebase.auth().onAuthStateChanged(function(user) {
+        if (!user) {
+          window.location.href = "login.html";
+        }
+      });
+
+      function logout() {
+        firebase.auth().signOut().then(() => {
+          window.location.href = "login.html";
+        });
+      }
+    </script>
+    <button onclick="logout()">Logout</button>
+    
+
+<div id="tourListContainer">
+  <h2>📝 Select or Create Tournament</h2>
+  <ul id="tourList"></ul>
+  <input type="text" id="newTourName" placeholder="New Tournament Name" />
+  <button onclick="createTournament()">➕ Create</button>
+</div>
+
+<script>
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (!user) {
+      window.location.href = "login.html";
+    } else {
+      loadTournaments();
+    }
+  });
+
+  function loadTournaments() {
+    db.collection("tournaments").get().then(snapshot => {
+      const ul = document.getElementById("tourList");
+      ul.innerHTML = "";
+      snapshot.forEach(doc => {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.textContent = doc.data().info?.name || "(no name)";
+        btn.onclick = () => {
+          sessionStorage.setItem("currentTourKey", doc.id);
+          window.location.href = "PrizePool.html";
+        };
+        li.appendChild(btn);
+        ul.appendChild(li);
+      });
+    });
+  }
+
+  function createTournament() {
+    const name = document.getElementById("newTourName").value.trim();
+    if (!name) return alert("Please enter a tournament name.");
+    const newRef = db.collection("tournaments").doc();
+    newRef.set({
+      info: { name: name },
+      prizeSettings: {},
+      structure: [],
+      players: []
+    }).then(() => {
+      sessionStorage.setItem("currentTourKey", newRef.id);
+      window.location.href = "PrizePool.html";
+    });
+  }
+
+  function logout() {
+    firebase.auth().signOut().then(() => {
+      window.location.href = "login.html";
+    });
+  }
+</script>
+
 </body>
 </html>

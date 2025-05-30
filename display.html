@@ -1690,5 +1690,44 @@ window.addEventListener('DOMContentLoaded', function() {
   });
 </script>
 
+
+<script>
+  const tourKey = sessionStorage.getItem("currentTourKey");
+  if (!tourKey) {
+    alert("No tournament selected. Redirecting...");
+    window.location.href = "index.html";
+  }
+
+  const tourRef = db.collection("tournaments").doc(tourKey);
+  tourRef.onSnapshot(doc => {
+    if (!doc.exists) return;
+    const data = doc.data();
+
+    const safeText = (id, txt) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = txt;
+    };
+
+    safeText("tourName", data.info?.name || "No Name");
+    safeText("entryInfo", "Entry Fee: $" + (data.prizeSettings?.entryFee || "0"));
+    safeText("totalEntry", "Total Entries: " + (data.prizeSettings?.totalEntry || "0"));
+    safeText("guarantee", "Guarantee: $" + (data.prizeSettings?.guarantee || "0"));
+
+    const levels = data.structure || [];
+    const last = levels[levels.length - 1] || {};
+    safeText("blindInfo", `Current Blind: ${last.sb || "?"}/${last.bb || "?"} (Ante: ${last.ante || 0})`);
+
+    const playerList = document.getElementById("playerList");
+    if (playerList) {
+      playerList.innerHTML = "";
+      (data.players || []).forEach(p => {
+        const li = document.createElement("li");
+        li.textContent = `${p.name} (${p.status || "Active"})`;
+        playerList.appendChild(li);
+      });
+    }
+  });
+</script>
+
 </body>
 </html>
