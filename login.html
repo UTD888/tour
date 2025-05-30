@@ -1,30 +1,58 @@
-
+<!-- login.html -->
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Login</title>
-  <!-- ✅ Firebase SDK for normal <script> -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="firebase-init.js"></script>
-
+  <style>
+    body { font-family:sans-serif; display:flex; align-items:center; justify-content:center; height:100vh; margin:0; background:#121212; color:#fff }
+    .login-card { background:#1f1f1f; padding:2rem; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.5); width:320px }
+    input, button { width:100%; padding:0.75rem; margin-top:1rem; border:none; border-radius:4px; font-size:1rem }
+    input { background:#2a2a2a; color:#fff }
+    button { background:#28a745; color:#fff; cursor:pointer }
+    #error { color:#f88; margin-top:0.5rem; font-size:0.9rem }
+  </style>
 </head>
-<body style="font-family:sans-serif;text-align:center;padding-top:50px;">
-  <h2>Login</h2>
-  <input id="email" type="email" placeholder="Email"><br><br>
-  <input id="password" type="password" placeholder="Password"><br><br>
-  <button onclick="login()">Login</button>
-  <p id="error" style="color:red;"></p>
-<script>
-function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  firebase.auth().signInWithEmailAndPassword(email, password)
-    .then(() => window.location.href = 'index.html')
-    .catch(e => document.getElementById("error").textContent = e.message);
-}
-</script>
+<body>
+  <div class="login-card">
+    <h2 style="text-align:center">เข้าสู่ระบบ</h2>
+    <input type="email" id="email" placeholder="อีเมล" />
+    <input type="password" id="password" placeholder="รหัสผ่าน" />
+    <button id="loginBtn">Login</button>
+    <div id="error"></div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+  <!-- your existing init -->
+  <script src="firebase-init.js"></script>
+
+  <script>
+    const auth = firebase.auth();
+
+    // if already logged in, go to index
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        window.location = 'index.html';
+      }
+    });
+
+    document.getElementById('loginBtn').onclick = async () => {
+      const email = document.getElementById('email').value.trim();
+      const pass  = document.getElementById('password').value.trim();
+      const errEl = document.getElementById('error');
+      errEl.textContent = '';
+
+      try {
+        await auth.signInWithEmailAndPassword(email, pass);
+        // onAuthStateChanged will redirect
+      } catch (err) {
+        console.error(err);
+        errEl.textContent = err.message;
+      }
+    };
+  </script>
 </body>
 </html>
