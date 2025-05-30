@@ -2,6 +2,24 @@
 
 <html lang="th">
 <head>
+<!-- ✅ Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDqd20lb2fQSMjqsSmzUXXgQFhBNC8sB9g",
+    authDomain: "luxutour-63450.firebaseapp.com",
+    projectId: "luxutour-63450",
+    storageBucket: "luxutour-63450.firebasestorage.app",
+    messagingSenderId: "349190270077",
+    appId: "1:349190270077:web:c52b936bdc2f06c7db1514",
+    measurementId: "G-1F45DPS42M"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+
 <meta charset="utf-8"/>
 <title>Prize Pool</title>
 <style>
@@ -113,7 +131,7 @@ function getPrizeAndBountyPool(type, info, players) {
 function loadTournamentFromLocalStorage() {
   const selectedKey = getSelectedTourKey();
   if (selectedKey) {
-    const raw = localStorage.getItem(selectedKey);
+    const raw = // localStorage.getItem (replaced)(selectedKey);
     if (!raw || raw === "null" || raw === "{}") {
       // เคลียร์ค่า prizeSettings ที่อาจค้าง
       localStorage.removeItem(selectedKey + '_prizeSettings');
@@ -136,7 +154,7 @@ function loadTournamentFromLocalStorage() {
     document.getElementById('tournamentInfo').innerHTML =
       `<div>🎯 ${info.name || '-'} (${info.type || '-'})</div>\n<div>💵 Buy-in: ${info.buyIn || '-'}</div>`;
     // Restore prize settings ถ้ามี
-    const settingsRaw = localStorage.getItem(selectedKey + '_prizeSettings');
+    const settingsRaw = // localStorage.getItem (replaced)(selectedKey + '_prizeSettings');
     if (settingsRaw) {
       const settings = JSON.parse(settingsRaw);
       currentPercents = settings.percents;
@@ -175,7 +193,7 @@ function getDefaultPercents(n) {
 function savePrizeSettings() {
   const selectedKey = getSelectedTourKey();
   if (!selectedKey) return;
-  localStorage.setItem(selectedKey + '_prizeSettings', JSON.stringify({
+  // localStorage.setItem (replaced)(selectedKey + '_prizeSettings', JSON.stringify({
     percents: currentPercents,
     nWinners: Number(document.getElementById('nWinners').value)
   }));
@@ -183,7 +201,7 @@ function savePrizeSettings() {
 
 function calculate() {
   const selectedKey = getSelectedTourKey();
-  const obj = JSON.parse(localStorage.getItem(selectedKey) || '{}');
+  const obj = JSON.parse(// localStorage.getItem (replaced)(selectedKey) || '{}');
   const info = obj.info || {};
   const players = obj.players || [];
   const type = (info.type || 'normal').toLowerCase();
@@ -231,7 +249,7 @@ function calculate() {
 
 function updateByAward(i) {
   const selectedKey = getSelectedTourKey();
-  const obj = JSON.parse(localStorage.getItem(selectedKey) || '{}');
+  const obj = JSON.parse(// localStorage.getItem (replaced)(selectedKey) || '{}');
   const info = obj.info || {};
   const players = obj.players || [];
   const type = (info.type || 'normal').toLowerCase();
@@ -313,5 +331,50 @@ window.addEventListener('storage', function(e) {
     setupRealtimePrizeListener();
   });
 </script>
+
+<script>
+firebase.auth().onAuthStateChanged(user => {
+  if (!user) {
+    window.location.href = "login.html";
+  }
+});
+</script>
+
+<script>
+  const tourKey = sessionStorage.getItem("currentTourKey");
+  const tourRef = db.collection("tournaments").doc(tourKey);
+
+  // Load prize settings and bind to UI
+  tourRef.onSnapshot(doc => {
+    if (doc.exists) {
+      const data = doc.data();
+      const prize = data.prizeSettings || {};
+      if (document.getElementById("entryFee")) {
+        document.getElementById("entryFee").value = prize.entryFee || "";
+        document.getElementById("rebuyFee").value = prize.rebuyFee || "";
+        document.getElementById("addonFee").value = prize.addonFee || "";
+        document.getElementById("guarantee").value = prize.guarantee || "";
+        document.getElementById("totalEntry").value = prize.totalEntry || "";
+        document.getElementById("prizeNote").value = prize.prizeNote || "";
+      }
+    }
+  });
+
+  // Save updates
+  function savePrizeSettings() {
+    const prizeSettings = {
+      entryFee: document.getElementById("entryFee").value,
+      rebuyFee: document.getElementById("rebuyFee").value,
+      addonFee: document.getElementById("addonFee").value,
+      guarantee: document.getElementById("guarantee").value,
+      totalEntry: document.getElementById("totalEntry").value,
+      prizeNote: document.getElementById("prizeNote").value,
+    };
+    tourRef.update({ prizeSettings }).then(() => {
+      alert("Prize settings updated!");
+    });
+  }
+</script>
+
 </body>
 </html>

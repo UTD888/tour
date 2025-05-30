@@ -1,6 +1,24 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+<!-- ✅ Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDqd20lb2fQSMjqsSmzUXXgQFhBNC8sB9g",
+    authDomain: "luxutour-63450.firebaseapp.com",
+    projectId: "luxutour-63450",
+    storageBucket: "luxutour-63450.firebasestorage.app",
+    messagingSenderId: "349190270077",
+    appId: "1:349190270077:web:c52b936bdc2f06c7db1514",
+    measurementId: "G-1F45DPS42M"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Display Tounament Info</title>
@@ -601,7 +619,7 @@ body {
     </div>
   </div>
   <script>
-let lastKoLogLength = (JSON.parse(localStorage.getItem('koLog') || '[]')).length;
+let lastKoLogLength = (JSON.parse(// localStorage.getItem (replaced)('koLog') || '[]')).length;
 let koToastTimeout = null; 
 let timerInterval = null;
 let currentLevelIndex = 0;
@@ -635,14 +653,14 @@ function isLateRegClosed(structureArr, currentLevelIndex, remainSec) {
 
 
 function loadTimerState() {
-  const timerData = JSON.parse(localStorage.getItem('luxu_timer') || '{}');
+  const timerData = JSON.parse(// localStorage.getItem (replaced)('luxu_timer') || '{}');
   timerPaused = (typeof timerData.paused === "boolean") ? timerData.paused : true;
   currentLevelIndex = (typeof timerData.level === "number") ? timerData.level : 0;
   remainSec = (typeof timerData.remainSec === "number") ? timerData.remainSec : 0;
   elapsedSec = (typeof timerData.elapsedSec === "number") ? timerData.elapsedSec : 0;
 }
 function saveTimerState() {
-  localStorage.setItem('luxu_timer', JSON.stringify({
+  // localStorage.setItem (replaced)('luxu_timer', JSON.stringify({
     paused: timerPaused,
     level: currentLevelIndex,
     remainSec,
@@ -786,7 +804,7 @@ function renderDisplay() {
   const key = getTourKeyFromURL();
   if (!key) { renderNoData(); return; }
   let tourObj;
-  try { tourObj = JSON.parse(localStorage.getItem(key)); } catch { tourObj = null; }
+  try { tourObj = JSON.parse(// localStorage.getItem (replaced)(key)); } catch { tourObj = null; }
   if (!tourObj || !tourObj.info) { renderNoData(); return; }
   const info = tourObj.info;
   const players = tourObj.players || [];
@@ -831,7 +849,7 @@ function renderDisplay() {
   }
 
   // --- (3) Pays Out ---
-  const prizeSettings = JSON.parse(localStorage.getItem(key + '_prizeSettings') || '{}');
+  const prizeSettings = JSON.parse(// localStorage.getItem (replaced)(key + '_prizeSettings') || '{}');
   const percents = prizeSettings.percents || [];
   const nWinners = prizeSettings.nWinners || percents.length;
   if (prizePool > 0 && nWinners > 0 && percents.length > 0) {
@@ -911,7 +929,7 @@ updateTimerDisplay();
 }
 
 function checkAndShowNewKoLog() {
-  let koLog = JSON.parse(localStorage.getItem('koLog') || '[]');
+  let koLog = JSON.parse(// localStorage.getItem (replaced)('koLog') || '[]');
   if (koLog.length > lastKoLogLength) {
     const item = koLog[koLog.length-1];
     showKoToast(item.action);
@@ -1434,7 +1452,7 @@ fullscreenBtn.onclick = function() {
   fullscreenBtn.style.opacity = "0";
   fullscreenBtn.style.pointerEvents = "none";
   // Save state
-  localStorage.setItem('display_fs_hidden', "1");
+  // localStorage.setItem (replaced)('display_fs_hidden', "1");
 }
 
 // เมื่อออกจาก fullscreen ให้โชว์ปุ่มอัตโนมัติ
@@ -1619,6 +1637,23 @@ window.addEventListener('DOMContentLoaded', function() {
           // Add more mappings as needed...
         }
       });
+    }
+  });
+</script>
+
+
+<script>
+  const tourKey = sessionStorage.getItem("currentTourKey");
+  const tourRef = db.collection("tournaments").doc(tourKey);
+
+  tourRef.onSnapshot(doc => {
+    if (doc.exists) {
+      const data = doc.data();
+      document.getElementById("tourName").textContent = data.info?.name || "No Name";
+      document.getElementById("entryInfo").textContent = "Entry Fee: $" + (data.prizeSettings?.entryFee || "0");
+      document.getElementById("totalEntry").textContent = "Total Entries: " + (data.prizeSettings?.totalEntry || "0");
+      document.getElementById("guarantee").textContent = "Guarantee: $" + (data.prizeSettings?.guarantee || "0");
+      // สามารถเพิ่มข้อมูลอื่นได้อีก เช่น players, prize note, etc.
     }
   });
 </script>
