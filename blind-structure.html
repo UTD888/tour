@@ -918,5 +918,46 @@ firebase.auth().onAuthStateChanged(user => {
   }
 </script>
 
+
+<script>
+  const tourKey = sessionStorage.getItem("currentTourKey");
+  const tourRef = db.collection("tournaments").doc(tourKey);
+
+  function renderStructure(structure) {
+    const tbody = document.getElementById("blindTableBody");
+    tbody.innerHTML = "";
+    structure.forEach((level, index) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td><input data-idx="${index}" data-field="sb" value="${level.sb || ""}" /></td>
+        <td><input data-idx="${index}" data-field="bb" value="${level.bb || ""}" /></td>
+        <td><input data-idx="${index}" data-field="ante" value="${level.ante || ""}" /></td>
+        <td><input data-idx="${index}" data-field="note" value="${level.note || ""}" /></td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    // Bind inputs to auto-update Firestore
+    tbody.querySelectorAll("input").forEach(input => {
+      input.addEventListener("input", () => {
+        const index = parseInt(input.dataset.idx);
+        const field = input.dataset.field;
+        structure[index][field] = input.value;
+        tourRef.update({ structure });
+      });
+    });
+  }
+
+  // Load structure in real time
+  tourRef.onSnapshot(doc => {
+    if (doc.exists) {
+      const data = doc.data();
+      const structure = data.structure || [];
+      renderStructure(structure);
+    }
+  });
+</script>
+
 </body>
 </html>

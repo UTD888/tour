@@ -1658,5 +1658,37 @@ window.addEventListener('DOMContentLoaded', function() {
   });
 </script>
 
+
+<script>
+  const tourKey = sessionStorage.getItem("currentTourKey");
+  const tourRef = db.collection("tournaments").doc(tourKey);
+
+  tourRef.onSnapshot(doc => {
+    if (doc.exists) {
+      const data = doc.data();
+      document.getElementById("tourName").textContent = data.info?.name || "No Name";
+      document.getElementById("entryInfo").textContent = "Entry Fee: $" + (data.prizeSettings?.entryFee || "0");
+      document.getElementById("totalEntry").textContent = "Total Entries: " + (data.prizeSettings?.totalEntry || "0");
+      document.getElementById("guarantee").textContent = "Guarantee: $" + (data.prizeSettings?.guarantee || "0");
+
+      // Display blind info (latest level)
+      const levels = data.structure || [];
+      const last = levels[levels.length - 1] || {};
+      document.getElementById("blindInfo").textContent = `Current Blind: ${last.sb || "?"}/${last.bb || "?"} (Ante: ${last.ante || 0})`;
+
+      // Player list
+      const playerList = document.getElementById("playerList");
+      if (playerList) {
+        playerList.innerHTML = "";
+        (data.players || []).forEach(p => {
+          const li = document.createElement("li");
+          li.textContent = `${p.name} (${p.status || "Active"})`;
+          playerList.appendChild(li);
+        });
+      }
+    }
+  });
+</script>
+
 </body>
 </html>

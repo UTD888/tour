@@ -376,5 +376,39 @@ firebase.auth().onAuthStateChanged(user => {
   }
 </script>
 
+
+<script>
+  const tourKey = sessionStorage.getItem("currentTourKey");
+  const tourRef = db.collection("tournaments").doc(tourKey);
+
+  // Load and display
+  tourRef.onSnapshot(doc => {
+    if (doc.exists) {
+      const prize = doc.data().prizeSettings || {};
+      const fields = ["entryFee", "rebuyFee", "addonFee", "guarantee", "totalEntry", "prizeNote"];
+      fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el !== document.activeElement) {
+          el.value = prize[id] || "";
+        }
+      });
+    }
+  });
+
+  // Update field on input change
+  function bindLiveUpdate(id) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener("input", () => {
+        const update = {};
+        update[`prizeSettings.${id}`] = el.value;
+        tourRef.update(update);
+      });
+    }
+  }
+
+  ["entryFee", "rebuyFee", "addonFee", "guarantee", "totalEntry", "prizeNote"].forEach(bindLiveUpdate);
+</script>
+
 </body>
 </html>
