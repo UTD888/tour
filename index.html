@@ -252,7 +252,7 @@
     <button class="btn" style="margin-top:18px;" onclick="closeDeleteTourModal()">Cancel</button>
   </div>
 </div>
-
+<button onclick="logout()">Logout</button>
 
   <h1>Setup Poker Tournament</h1>
   <div class="main-container">
@@ -1058,7 +1058,14 @@ function openDisplay() {
   }
   window.open('display.html?tourKey=' + encodeURIComponent(tourKey), '_blank');
 }
-
+function logout() {
+    firebase.auth().signOut().then(() => {
+      window.location.href = "login.html";
+    }).catch((error) => {
+      console.error("Logout Error:", error);
+      alert("ออกจากระบบไม่สำเร็จ");
+    });
+  }
 
 
 
