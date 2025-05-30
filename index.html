@@ -3,9 +3,36 @@
 <html lang="th">
 <head>
 <!-- ✅ Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
+function deleteTournament(docId, name) {
+  if (!confirm(`แน่ใจหรือไม่ว่าต้องการลบทัวร์นาเมนต์ "${name}"? การกระทำนี้ไม่สามารถยกเลิกได้.`)) return;
+  db.collection("tournaments").doc(docId).delete().then(() => {
+    alert("ลบทัวร์นาเมนต์เรียบร้อยแล้ว");
+    loadTournaments(); // refresh list
+  });
+}
+
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js">
+function deleteTournament(docId, name) {
+  if (!confirm(`แน่ใจหรือไม่ว่าต้องการลบทัวร์นาเมนต์ "${name}"? การกระทำนี้ไม่สามารถยกเลิกได้.`)) return;
+  db.collection("tournaments").doc(docId).delete().then(() => {
+    alert("ลบทัวร์นาเมนต์เรียบร้อยแล้ว");
+    loadTournaments(); // refresh list
+  });
+}
+
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js">
+function deleteTournament(docId, name) {
+  if (!confirm(`แน่ใจหรือไม่ว่าต้องการลบทัวร์นาเมนต์ "${name}"? การกระทำนี้ไม่สามารถยกเลิกได้.`)) return;
+  db.collection("tournaments").doc(docId).delete().then(() => {
+    alert("ลบทัวร์นาเมนต์เรียบร้อยแล้ว");
+    loadTournaments(); // refresh list
+  });
+}
+
+</script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyDqd20lb2fQSMjqsSmzUXXgQFhBNC8sB9g",
@@ -18,6 +45,15 @@
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
+
+function deleteTournament(docId, name) {
+  if (!confirm(`แน่ใจหรือไม่ว่าต้องการลบทัวร์นาเมนต์ "${name}"? การกระทำนี้ไม่สามารถยกเลิกได้.`)) return;
+  db.collection("tournaments").doc(docId).delete().then(() => {
+    alert("ลบทัวร์นาเมนต์เรียบร้อยแล้ว");
+    loadTournaments(); // refresh list
+  });
+}
+
 </script>
 
 <meta charset="utf-8"/>
@@ -25,10 +61,46 @@
 <title>Setup Poker Tournament</title>
 <!-- Firebase App (core) + Auth -->
 <!-- ✅ Firebase SDK (Compat Version) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="firebase-init.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
+function deleteTournament(docId, name) {
+  if (!confirm(`แน่ใจหรือไม่ว่าต้องการลบทัวร์นาเมนต์ "${name}"? การกระทำนี้ไม่สามารถยกเลิกได้.`)) return;
+  db.collection("tournaments").doc(docId).delete().then(() => {
+    alert("ลบทัวร์นาเมนต์เรียบร้อยแล้ว");
+    loadTournaments(); // refresh list
+  });
+}
+
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js">
+function deleteTournament(docId, name) {
+  if (!confirm(`แน่ใจหรือไม่ว่าต้องการลบทัวร์นาเมนต์ "${name}"? การกระทำนี้ไม่สามารถยกเลิกได้.`)) return;
+  db.collection("tournaments").doc(docId).delete().then(() => {
+    alert("ลบทัวร์นาเมนต์เรียบร้อยแล้ว");
+    loadTournaments(); // refresh list
+  });
+}
+
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js">
+function deleteTournament(docId, name) {
+  if (!confirm(`แน่ใจหรือไม่ว่าต้องการลบทัวร์นาเมนต์ "${name}"? การกระทำนี้ไม่สามารถยกเลิกได้.`)) return;
+  db.collection("tournaments").doc(docId).delete().then(() => {
+    alert("ลบทัวร์นาเมนต์เรียบร้อยแล้ว");
+    loadTournaments(); // refresh list
+  });
+}
+
+</script>
+<script src="firebase-init.js">
+function deleteTournament(docId, name) {
+  if (!confirm(`แน่ใจหรือไม่ว่าต้องการลบทัวร์นาเมนต์ "${name}"? การกระทำนี้ไม่สามารถยกเลิกได้.`)) return;
+  db.collection("tournaments").doc(docId).delete().then(() => {
+    alert("ลบทัวร์นาเมนต์เรียบร้อยแล้ว");
+    loadTournaments(); // refresh list
+  });
+}
+
+</script>
 <!-- ✅ ตรวจสอบว่า login แล้ว -->
 <script>
     firebase.auth().onAuthStateChanged(user => {
@@ -36,7 +108,16 @@
         window.location.href = "login.html";
       }
     });
-  </script>
+  
+function deleteTournament(docId, name) {
+  if (!confirm(`แน่ใจหรือไม่ว่าต้องการลบทัวร์นาเมนต์ "${name}"? การกระทำนี้ไม่สามารถยกเลิกได้.`)) return;
+  db.collection("tournaments").doc(docId).delete().then(() => {
+    alert("ลบทัวร์นาเมนต์เรียบร้อยแล้ว");
+    loadTournaments(); // refresh list
+  });
+}
+
+</script>
 <style>
     button:disabled {
   opacity: 0.4 !important;
@@ -1092,6 +1173,15 @@ function openDisplay() {
 
 
 
+
+function deleteTournament(docId, name) {
+  if (!confirm(`แน่ใจหรือไม่ว่าต้องการลบทัวร์นาเมนต์ "${name}"? การกระทำนี้ไม่สามารถยกเลิกได้.`)) return;
+  db.collection("tournaments").doc(docId).delete().then(() => {
+    alert("ลบทัวร์นาเมนต์เรียบร้อยแล้ว");
+    loadTournaments(); // refresh list
+  });
+}
+
 </script>
 
 <script>
@@ -1119,6 +1209,15 @@ function openDisplay() {
   document.addEventListener("DOMContentLoaded", () => {
     setupRealtimeTournamentListener();
   });
+
+function deleteTournament(docId, name) {
+  if (!confirm(`แน่ใจหรือไม่ว่าต้องการลบทัวร์นาเมนต์ "${name}"? การกระทำนี้ไม่สามารถยกเลิกได้.`)) return;
+  db.collection("tournaments").doc(docId).delete().then(() => {
+    alert("ลบทัวร์นาเมนต์เรียบร้อยแล้ว");
+    loadTournaments(); // refresh list
+  });
+}
+
 </script>
 
 <script>
@@ -1127,6 +1226,15 @@ firebase.auth().onAuthStateChanged(user => {
     window.location.href = "login.html";
   }
 });
+
+function deleteTournament(docId, name) {
+  if (!confirm(`แน่ใจหรือไม่ว่าต้องการลบทัวร์นาเมนต์ "${name}"? การกระทำนี้ไม่สามารถยกเลิกได้.`)) return;
+  db.collection("tournaments").doc(docId).delete().then(() => {
+    alert("ลบทัวร์นาเมนต์เรียบร้อยแล้ว");
+    loadTournaments(); // refresh list
+  });
+}
+
 </script>
 
     <script>
@@ -1141,7 +1249,16 @@ firebase.auth().onAuthStateChanged(user => {
           window.location.href = "login.html";
         });
       }
-    </script>
+    
+function deleteTournament(docId, name) {
+  if (!confirm(`แน่ใจหรือไม่ว่าต้องการลบทัวร์นาเมนต์ "${name}"? การกระทำนี้ไม่สามารถยกเลิกได้.`)) return;
+  db.collection("tournaments").doc(docId).delete().then(() => {
+    alert("ลบทัวร์นาเมนต์เรียบร้อยแล้ว");
+    loadTournaments(); // refresh list
+  });
+}
+
+</script>
     <button onclick="logout()">Logout</button>
     
 
@@ -1174,7 +1291,14 @@ firebase.auth().onAuthStateChanged(user => {
           window.location.href = "PrizePool.html";
         };
         li.appendChild(btn);
+        
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "🗑️";
+        delBtn.style.marginLeft = "10px";
+        delBtn.onclick = () => deleteTournament(doc.id, btn.textContent);
+        li.appendChild(delBtn);
         ul.appendChild(li);
+    
       });
     });
   }
@@ -1199,6 +1323,15 @@ firebase.auth().onAuthStateChanged(user => {
       window.location.href = "login.html";
     });
   }
+
+function deleteTournament(docId, name) {
+  if (!confirm(`แน่ใจหรือไม่ว่าต้องการลบทัวร์นาเมนต์ "${name}"? การกระทำนี้ไม่สามารถยกเลิกได้.`)) return;
+  db.collection("tournaments").doc(docId).delete().then(() => {
+    alert("ลบทัวร์นาเมนต์เรียบร้อยแล้ว");
+    loadTournaments(); // refresh list
+  });
+}
+
 </script>
 
 </body>
