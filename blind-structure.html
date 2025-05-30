@@ -2,24 +2,6 @@
 
 <html lang="th">
 <head>
-<!-- ✅ Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDqd20lb2fQSMjqsSmzUXXgQFhBNC8sB9g",
-    authDomain: "luxutour-63450.firebaseapp.com",
-    projectId: "luxutour-63450",
-    storageBucket: "luxutour-63450.firebasestorage.app",
-    messagingSenderId: "349190270077",
-    appId: "1:349190270077:web:c52b936bdc2f06c7db1514",
-    measurementId: "G-1F45DPS42M"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-</script>
-
 <meta charset="utf-8"/>
 <title>Blind Structure Editor</title>
 <style>
@@ -341,7 +323,7 @@ tr.break input[type="text"] {
 <script>
 let levelCounter = 1;
 let breakCounter = 1;
-let currentTourKey = // localStorage.getItem (replaced)("currentTourKey") || null;
+let currentTourKey = localStorage.getItem("currentTourKey") || null;
 
 function showSavedModal() {
   document.getElementById("popupSavedModal").style.display = "flex";
@@ -355,12 +337,12 @@ function closeSavedModal() {
 
 // เช็คว่ามีทัวร์หรือยัง
 function checkTourSelected() {
-  if (!currentTourKey || !// localStorage.getItem (replaced)(currentTourKey)) {
+  if (!currentTourKey || !localStorage.getItem(currentTourKey)) {
     document.body.innerHTML = '<div id="infoMsg" style="background:#ffcccc;color:#b00020;font-size:20px;padding:32px 14px;margin-top:40px;border-radius:8px;text-align:center;">กรุณาเลือกทัวร์ที่หน้าหลักก่อน<br><br><a href="index1.html" style="color:#007bff;font-weight:bold;">← กลับหน้าเลือกทัวร์</a></div>';
     return false;
   }
   // แสดงชื่อทัวร์
-  const tourObj = JSON.parse(// localStorage.getItem (replaced)(currentTourKey));
+  const tourObj = JSON.parse(localStorage.getItem(currentTourKey));
   document.getElementById("tourNameBar").style.display = "";
   document.getElementById("tourNameBar").textContent = "📝 กำลังแก้ Blind Structure ให้ทัวร์: " + (tourObj.info?.name || "(ไม่พบชื่อทัวร์)");
   return true;
@@ -397,7 +379,7 @@ function saveStructureTemp(key = "blind_structure_autosave") {
       });
     }
   });
-  // localStorage.setItem (replaced)(key, JSON.stringify(data));
+  localStorage.setItem(key, JSON.stringify(data));
 }
 function loadStructureFromData(data) {
   const tbody = document.querySelector("#structureTable tbody");
@@ -439,7 +421,7 @@ function loadStructureFromData(data) {
 
 
 function loadStructureTemp(key = "blind_structure_autosave") {
-  const data = JSON.parse(// localStorage.getItem (replaced)(key) || "[]");
+  const data = JSON.parse(localStorage.getItem(key) || "[]");
   const tbody = document.querySelector("#structureTable tbody");
   tbody.innerHTML = "";
   levelCounter = 1;
@@ -479,12 +461,12 @@ function loadStructureTemp(key = "blind_structure_autosave") {
 
 // บันทึกใส่ทัวร์ (object ทัวร์)
 function saveToTournament() {
-  if (!currentTourKey || !// localStorage.getItem (replaced)(currentTourKey)) return;
+  if (!currentTourKey || !localStorage.getItem(currentTourKey)) return;
   saveStructureTemp();
-  const data = JSON.parse(// localStorage.getItem (replaced)("blind_structure_autosave") || "[]");
-  const obj = JSON.parse(// localStorage.getItem (replaced)(currentTourKey));
+  const data = JSON.parse(localStorage.getItem("blind_structure_autosave") || "[]");
+  const obj = JSON.parse(localStorage.getItem(currentTourKey));
   obj.blindStructure = data;
-  // localStorage.setItem (replaced)(currentTourKey, JSON.stringify(obj));
+  localStorage.setItem(currentTourKey, JSON.stringify(obj));
   localStorage.removeItem('blind_structure_autosave');
   showSavedModal();  // เรียก popup แจ้งเตือน
 }
@@ -495,8 +477,8 @@ function saveAsTemplate() {
   saveStructureTemp();
   const name = prompt("ตั้งชื่อแม่แบบ Structure:");
   if (!name) return;
-  const data = JSON.parse(// localStorage.getItem (replaced)("blind_structure_autosave") || "[]");
-  // localStorage.setItem (replaced)("structure_template_" + name, JSON.stringify(data));
+  const data = JSON.parse(localStorage.getItem("blind_structure_autosave") || "[]");
+  localStorage.setItem("structure_template_" + name, JSON.stringify(data));
   loadTemplates();
   alert("บันทึกแม่แบบ Structure แล้ว: " + name);
 }
@@ -749,7 +731,7 @@ window.addEventListener("DOMContentLoaded", () => {
   if (!checkTourSelected()) return;
   loadTemplates();
   // โหลดจาก object ทัวร์ก่อนเสมอ ไม่ใช้ temp ก่อน
-  const tourObj = JSON.parse(// localStorage.getItem (replaced)(currentTourKey));
+  const tourObj = JSON.parse(localStorage.getItem(currentTourKey));
   if (tourObj.blindStructure && Array.isArray(tourObj.blindStructure)) {
     loadStructureFromData(tourObj.blindStructure);
   } else {
@@ -863,101 +845,5 @@ function deleteSelectedTemplate() {
     }, 1000);
   });
 </script>
-
-<script>
-firebase.auth().onAuthStateChanged(user => {
-  if (!user) {
-    window.location.href = "login.html";
-  }
-});
-</script>
-
-<script>
-  const tourKey = sessionStorage.getItem("currentTourKey");
-  const tourRef = db.collection("tournaments").doc(tourKey);
-
-  // Load blind structure
-  tourRef.onSnapshot(doc => {
-    if (doc.exists) {
-      const data = doc.data();
-      const structure = data.structure || [];
-      const tbody = document.getElementById("blindTableBody");
-      if (tbody) {
-        tbody.innerHTML = "";
-        structure.forEach((level, index) => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${index + 1}</td>
-            <td><input value="${level.sb || ""}" /></td>
-            <td><input value="${level.bb || ""}" /></td>
-            <td><input value="${level.ante || ""}" /></td>
-            <td><input value="${level.note || ""}" /></td>
-          `;
-          tbody.appendChild(row);
-        });
-      }
-    }
-  });
-
-  // Save structure
-  function saveBlindStructure() {
-    const rows = document.querySelectorAll("#blindTableBody tr");
-    const structure = [];
-    rows.forEach(row => {
-      const cells = row.querySelectorAll("input");
-      structure.push({
-        sb: cells[0].value,
-        bb: cells[1].value,
-        ante: cells[2].value,
-        note: cells[3].value,
-      });
-    });
-    tourRef.update({ structure }).then(() => {
-      alert("Blind structure saved!");
-    });
-  }
-</script>
-
-
-<script>
-  const tourKey = sessionStorage.getItem("currentTourKey");
-  const tourRef = db.collection("tournaments").doc(tourKey);
-
-  function renderStructure(structure) {
-    const tbody = document.getElementById("blindTableBody");
-    tbody.innerHTML = "";
-    structure.forEach((level, index) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${index + 1}</td>
-        <td><input data-idx="${index}" data-field="sb" value="${level.sb || ""}" /></td>
-        <td><input data-idx="${index}" data-field="bb" value="${level.bb || ""}" /></td>
-        <td><input data-idx="${index}" data-field="ante" value="${level.ante || ""}" /></td>
-        <td><input data-idx="${index}" data-field="note" value="${level.note || ""}" /></td>
-      `;
-      tbody.appendChild(row);
-    });
-
-    // Bind inputs to auto-update Firestore
-    tbody.querySelectorAll("input").forEach(input => {
-      input.addEventListener("input", () => {
-        const index = parseInt(input.dataset.idx);
-        const field = input.dataset.field;
-        structure[index][field] = input.value;
-        tourRef.update({ structure });
-      });
-    });
-  }
-
-  // Load structure in real time
-  tourRef.onSnapshot(doc => {
-    if (doc.exists) {
-      const data = doc.data();
-      const structure = data.structure || [];
-      renderStructure(structure);
-    }
-  });
-</script>
-
 </body>
 </html>

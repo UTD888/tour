@@ -1,24 +1,6 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<!-- ✅ Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDqd20lb2fQSMjqsSmzUXXgQFhBNC8sB9g",
-    authDomain: "luxutour-63450.firebaseapp.com",
-    projectId: "luxutour-63450",
-    storageBucket: "luxutour-63450.firebasestorage.app",
-    messagingSenderId: "349190270077",
-    appId: "1:349190270077:web:c52b936bdc2f06c7db1514",
-    measurementId: "G-1F45DPS42M"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-</script>
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Display Tounament Info</title>
@@ -619,7 +601,7 @@ body {
     </div>
   </div>
   <script>
-let lastKoLogLength = (JSON.parse(// localStorage.getItem (replaced)('koLog') || '[]')).length;
+let lastKoLogLength = (JSON.parse(localStorage.getItem('koLog') || '[]')).length;
 let koToastTimeout = null; 
 let timerInterval = null;
 let currentLevelIndex = 0;
@@ -653,14 +635,14 @@ function isLateRegClosed(structureArr, currentLevelIndex, remainSec) {
 
 
 function loadTimerState() {
-  const timerData = JSON.parse(// localStorage.getItem (replaced)('luxu_timer') || '{}');
+  const timerData = JSON.parse(localStorage.getItem('luxu_timer') || '{}');
   timerPaused = (typeof timerData.paused === "boolean") ? timerData.paused : true;
   currentLevelIndex = (typeof timerData.level === "number") ? timerData.level : 0;
   remainSec = (typeof timerData.remainSec === "number") ? timerData.remainSec : 0;
   elapsedSec = (typeof timerData.elapsedSec === "number") ? timerData.elapsedSec : 0;
 }
 function saveTimerState() {
-  // localStorage.setItem (replaced)('luxu_timer', JSON.stringify({
+  localStorage.setItem('luxu_timer', JSON.stringify({
     paused: timerPaused,
     level: currentLevelIndex,
     remainSec,
@@ -804,7 +786,7 @@ function renderDisplay() {
   const key = getTourKeyFromURL();
   if (!key) { renderNoData(); return; }
   let tourObj;
-  try { tourObj = JSON.parse(// localStorage.getItem (replaced)(key)); } catch { tourObj = null; }
+  try { tourObj = JSON.parse(localStorage.getItem(key)); } catch { tourObj = null; }
   if (!tourObj || !tourObj.info) { renderNoData(); return; }
   const info = tourObj.info;
   const players = tourObj.players || [];
@@ -836,34 +818,40 @@ function renderDisplay() {
   let buyIn = parseFloat(info.buyIn || 0);
   let reBuy = parseFloat(info.rebuy || 0);
   let addOn = parseFloat(info.addon || 0);
-  let prizePool = 0, bountyPool = 0;
-  let rebuyCount = rebuy, addonCount = addon;
-  if (info.type === "Bounty") {
-    prizePool = ((buyIn/2) * entry) + ((reBuy/2) * rebuyCount) + (addOn * addonCount);
-    bountyPool = ((buyIn/2) * entry) + ((reBuy/2) * rebuyCount);
-    document.querySelector('.prize-pool').innerHTML =
-      `<b>Prize:</b> ${prizePool.toLocaleString()}<br><b>Bounty:</b> ${bountyPool.toLocaleString()}`;
-  } else {
-    prizePool = (buyIn * entry) + (reBuy * rebuyCount) + (addOn * addonCount);
-    document.querySelector('.prize-pool').textContent = prizePool.toLocaleString();
-  }
+  let prizePool = parseFloat(tourObj.prizePool || 0); // << ใช้ค่าที่ถูกคำนวณจริงจากหน้า prizePool.html
+let bountyPool = 0;
+
+if (info.type === "Bounty") {
+  // คำนวณ bountyPool ใหม่ได้ (แสดงผลเฉย ๆ)
+  bountyPool = ((buyIn/2) * entry) + ((reBuy/2) * rebuy);
+  document.querySelector('.prize-pool').innerHTML =
+    `<b>Prize:</b> ${prizePool.toLocaleString()}<br><b>Bounty:</b> ${bountyPool.toLocaleString()}`;
+} else {
+  document.querySelector('.prize-pool').textContent = prizePool.toLocaleString();
+}
 
   // --- (3) Pays Out ---
-  const prizeSettings = JSON.parse(// localStorage.getItem (replaced)(key + '_prizeSettings') || '{}');
-  const percents = prizeSettings.percents || [];
-  const nWinners = prizeSettings.nWinners || percents.length;
-  if (prizePool > 0 && nWinners > 0 && percents.length > 0) {
-    let html = `<table class="payout-table"><tr><th>อันดับ</th><th>จำนวนเงิน</th><th>%</th></tr>`;
-    for (let i = 0; i < nWinners; i++) {
-      let percent = percents[i] || 0;
-      let amount = Math.round(prizePool * percent / 100);
-      html += `<tr><td>${i+1}</td><td>${amount.toLocaleString()}</td><td>${percent}</td></tr>`;
-    }
-    html += "</table>";
-    document.querySelector('.pays-out').innerHTML = html;
-  } else {
-    document.querySelector('.pays-out').textContent = '-';
+const prizeSettings = JSON.parse(localStorage.getItem(key + '_prizeSettings') || '{}');
+const percents = Array.isArray(prizeSettings.percents) ? prizeSettings.percents : [];
+let nWinners = parseInt(prizeSettings.nWinners);
+if (!nWinners || nWinners <= 0 || nWinners > percents.length) {
+  nWinners = percents.length;
+}
+
+if (prizePool > 0 && nWinners > 0 && percents.length >= nWinners) {
+  let html = `<table class="payout-table"><tr><th>อันดับ</th><th>จำนวนเงิน</th><th>%</th></tr>`;
+  for (let i = 0; i < nWinners; i++) {
+    let percent = percents[i] || 0;
+    let amount = Math.round(prizePool * percent / 100);
+    html += `<tr><td>${i + 1}</td><td>${amount.toLocaleString()}</td><td>${percent}</td></tr>`;
   }
+  html += "</table>";
+  document.querySelector('.pays-out').innerHTML = html;
+} else {
+  document.querySelector('.pays-out').textContent = '-';
+}
+
+
 
   // --- (4) Player List ---
     setupPlayerAutoScroll(players, info);
@@ -929,7 +917,7 @@ updateTimerDisplay();
 }
 
 function checkAndShowNewKoLog() {
-  let koLog = JSON.parse(// localStorage.getItem (replaced)('koLog') || '[]');
+  let koLog = JSON.parse(localStorage.getItem('koLog') || '[]');
   if (koLog.length > lastKoLogLength) {
     const item = koLog[koLog.length-1];
     showKoToast(item.action);
@@ -1452,7 +1440,7 @@ fullscreenBtn.onclick = function() {
   fullscreenBtn.style.opacity = "0";
   fullscreenBtn.style.pointerEvents = "none";
   // Save state
-  // localStorage.setItem (replaced)('display_fs_hidden', "1");
+  localStorage.setItem('display_fs_hidden', "1");
 }
 
 // เมื่อออกจาก fullscreen ให้โชว์ปุ่มอัตโนมัติ
@@ -1593,140 +1581,6 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 
 
-</script>
-
-
-<!-- Firebase App (the core Firebase SDK) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDqd20lb2fQSMjqsSmzUXXgQFhBNC8sB9g",
-    authDomain: "luxutour-63450.firebaseapp.com",
-    projectId: "luxutour-63450",
-    storageBucket: "luxutour-63450.firebasestorage.app",
-    messagingSenderId: "349190270077",
-    appId: "1:349190270077:web:c52b936bdc2f06c7db1514",
-    measurementId: "G-1F45DPS42M"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  // Auth guard
-  firebase.auth().onAuthStateChanged(user => {
-    if (!user) {
-      window.location.href = "login.html";
-    } else {
-      const urlParams = new URLSearchParams(window.location.search);
-      const tourKey = urlParams.get("tourKey") || "default";
-      const docRef = db.collection("displayData").doc(tourKey);
-      docRef.onSnapshot(doc => {
-        if (doc.exists) {
-          const data = doc.data();
-          // You must replace the below logic with actual field mapping
-          if (data.tournamentName) {
-            const el = document.getElementById("tournamentName");
-            if (el) el.textContent = data.tournamentName;
-          }
-          if (data.blindLevel) {
-            const el = document.getElementById("blindLevel");
-            if (el) el.textContent = data.blindLevel;
-          }
-          // Add more mappings as needed...
-        }
-      });
-    }
-  });
-</script>
-
-
-<script>
-  const tourKey = sessionStorage.getItem("currentTourKey");
-  const tourRef = db.collection("tournaments").doc(tourKey);
-
-  tourRef.onSnapshot(doc => {
-    if (doc.exists) {
-      const data = doc.data();
-      document.getElementById("tourName").textContent = data.info?.name || "No Name";
-      document.getElementById("entryInfo").textContent = "Entry Fee: $" + (data.prizeSettings?.entryFee || "0");
-      document.getElementById("totalEntry").textContent = "Total Entries: " + (data.prizeSettings?.totalEntry || "0");
-      document.getElementById("guarantee").textContent = "Guarantee: $" + (data.prizeSettings?.guarantee || "0");
-      // สามารถเพิ่มข้อมูลอื่นได้อีก เช่น players, prize note, etc.
-    }
-  });
-</script>
-
-
-<script>
-  const tourKey = sessionStorage.getItem("currentTourKey");
-  const tourRef = db.collection("tournaments").doc(tourKey);
-
-  tourRef.onSnapshot(doc => {
-    if (doc.exists) {
-      const data = doc.data();
-      document.getElementById("tourName").textContent = data.info?.name || "No Name";
-      document.getElementById("entryInfo").textContent = "Entry Fee: $" + (data.prizeSettings?.entryFee || "0");
-      document.getElementById("totalEntry").textContent = "Total Entries: " + (data.prizeSettings?.totalEntry || "0");
-      document.getElementById("guarantee").textContent = "Guarantee: $" + (data.prizeSettings?.guarantee || "0");
-
-      // Display blind info (latest level)
-      const levels = data.structure || [];
-      const last = levels[levels.length - 1] || {};
-      document.getElementById("blindInfo").textContent = `Current Blind: ${last.sb || "?"}/${last.bb || "?"} (Ante: ${last.ante || 0})`;
-
-      // Player list
-      const playerList = document.getElementById("playerList");
-      if (playerList) {
-        playerList.innerHTML = "";
-        (data.players || []).forEach(p => {
-          const li = document.createElement("li");
-          li.textContent = `${p.name} (${p.status || "Active"})`;
-          playerList.appendChild(li);
-        });
-      }
-    }
-  });
-</script>
-
-
-<script>
-  const tourKey = sessionStorage.getItem("currentTourKey");
-  if (!tourKey) {
-    alert("No tournament selected. Redirecting...");
-    window.location.href = "index.html";
-  }
-
-  const tourRef = db.collection("tournaments").doc(tourKey);
-  tourRef.onSnapshot(doc => {
-    if (!doc.exists) return;
-    const data = doc.data();
-
-    const safeText = (id, txt) => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = txt;
-    };
-
-    safeText("tourName", data.info?.name || "No Name");
-    safeText("entryInfo", "Entry Fee: $" + (data.prizeSettings?.entryFee || "0"));
-    safeText("totalEntry", "Total Entries: " + (data.prizeSettings?.totalEntry || "0"));
-    safeText("guarantee", "Guarantee: $" + (data.prizeSettings?.guarantee || "0"));
-
-    const levels = data.structure || [];
-    const last = levels[levels.length - 1] || {};
-    safeText("blindInfo", `Current Blind: ${last.sb || "?"}/${last.bb || "?"} (Ante: ${last.ante || 0})`);
-
-    const playerList = document.getElementById("playerList");
-    if (playerList) {
-      playerList.innerHTML = "";
-      (data.players || []).forEach(p => {
-        const li = document.createElement("li");
-        li.textContent = `${p.name} (${p.status || "Active"})`;
-        playerList.appendChild(li);
-      });
-    }
-  });
 </script>
 
 </body>
