@@ -4,6 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Setup Poker Tournament</title>
+  <!-- index.html, near the top of <head> or right before your init script -->
+
+<!-- 1. The core Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+
+<!-- 2. Firebase Auth -->
+<script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+
+<!-- 3. Firebase Firestore (since firebase-init.js calls firebase.firestore()) -->
+<script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore-compat.js"></script>
+
+<!-- 4. Your initialization: -->
+<script src="firebase-init.js"></script>  <!-- :contentReference[oaicite:0]{index=0} -->
+
   <style>
     button:disabled {
   opacity: 0.4 !important;
