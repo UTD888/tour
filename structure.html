@@ -356,65 +356,76 @@ function parseNumber(value) {
 async function saveToFirestore() {
   const rows = document.querySelectorAll("#structure-body tr");
 
-  // ลบข้อมูลเก่า
+  // ลบข้อมูลเก่าทั้งหมด
   const snapshot = await structureRef.get();
   const batchDelete = firebase.firestore().batch();
   snapshot.forEach(doc => batchDelete.delete(doc.ref));
   await batchDelete.commit();
 
-  // เพิ่มข้อมูลใหม่
+  // เพิ่มข้อมูลใหม่ตามลำดับ DOM พร้อม index ใหม่
   const batch = firebase.firestore().batch();
   rows.forEach((row, index) => {
-  const noteInput = row.querySelector(".note-input");
-  let rowData = {};
+    const noteInput = row.querySelector(".note-input");
+    let rowData = {};
 
-  if (noteInput) {
-    rowData = {
-      isBreak: true,
-      note: noteInput.value || '',
-      duration: row.querySelector("input[placeholder='duration']")?.value || '',
-      time: row.querySelector("input[placeholder='time']")?.value || ''
-    };
-  } else {
-    rowData = {
-      sb: row.querySelector("input[placeholder='sb']")?.value || '',
-      bb: row.querySelector("input[placeholder='bb']")?.value || '',
-      ante: row.querySelector("input[placeholder='ante']")?.value || '',
-      duration: row.querySelector("input[placeholder='duration']")?.value || '',
-      time: row.querySelector("input[placeholder='time']")?.value || ''
-    };
-  }
+    if (noteInput) {
+      rowData = {
+        isBreak: true,
+        note: noteInput.value || '',
+        duration: row.querySelector("input[placeholder='duration']")?.value || '',
+        time: row.querySelector("input[placeholder='time']")?.value || ''
+      };
+    } else {
+      rowData = {
+        sb: row.querySelector("input[placeholder='sb']")?.value || '',
+        bb: row.querySelector("input[placeholder='bb']")?.value || '',
+        ante: row.querySelector("input[placeholder='ante']")?.value || '',
+        duration: row.querySelector("input[placeholder='duration']")?.value || '',
+        time: row.querySelector("input[placeholder='time']")?.value || ''
+      };
+    }
 
-  rowData.index = index; // ✅ เพิ่มบรรทัดนี้
+    rowData.index = index; // 🔥 ใส่ index ตามลำดับ DOM เสมอ
 
-  const docRef = structureRef.doc(String(index + 1));
-  batch.set(docRef, rowData);
-});
-
+    const docRef = structureRef.doc(String(index + 1));
+    batch.set(docRef, rowData);
+  });
 
   await batch.commit();
 
-  // ล้าง localStorage และโหลดใหม่
   alert("✅ บันทึกลง Firestore สำเร็จแล้ว");
   localStorage.removeItem(STORAGE_KEY);
   loadStructureFromFirestore();
 }
 function loadStructureFromFirestore() {
-  structureRef.orderBy("index")
-    .onSnapshot(snapshot => {
-      document.getElementById("structure-body").innerHTML = "";
+  structureRef.orderBy("index").get().then(snapshot => {
+    document.getElementById("structure-body").innerHTML = "";
+    const all = [];
 
-      if (snapshot.empty) {
-        console.log("📭 ยังไม่มี structure สำหรับทัวร์นี้");
-        return;
-      }
-
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        addRow(data);
-      });
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      all.push(data);
     });
+
+    // 🔁 ป้องกันกรณีไม่มี index หรือ index ซ้ำ
+    all.sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
+
+    all.forEach(data => {
+      addRow(data); // ✨ ใช้ addRow ปกติไม่ต้อง insertAt
+    });
+
+    updateLVNumbers();
+    updateTimeColumn();
+  });
 }
+async function clearStructure() {
+  const snapshot = await structureRef.get();
+  const batch = firebase.firestore().batch();
+  snapshot.forEach(doc => batch.delete(doc.ref));
+  await batch.commit();
+  alert("🧹 ลบ structure เก่าทั้งหมดแล้ว");
+}
+
 
 
 
