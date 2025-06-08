@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>Structure Setting</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-init.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Segoe UI", sans-serif;
+      padding: 2rem;
+      margin: 0;
+      background: #fdfdfd;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    th, td {
+      padding: 0.6rem;
+      border-bottom: 1px solid #eee;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background-color: #fafafa;
+      font-weight: 500;
+    }
+
+    input {
+      width: 90px;
+      padding: 0.3rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    input.note-input {
+      width: 100%;
+    }
+
+    button {
+      padding: 4px 10px;
+      font-size: 0.9rem;
+      border: none;
+      background: #f0f0f0;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 0 4px;
+    }
+
+    button:hover {
+      background: #e0e0e0;
+    }
+
+    .add-button {
+      margin-top: 1rem;
+      text-align: center;
+    }
+    /* ปิดลูกศรขึ้นลงของ input number */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+
+
+  </style>
+</head>
+<body>
+
+<h1>🛠️ STRUCTURE: <span id="tour-name">-</span></h1>
+
+<table id="structure-table">
+  <thead>
+    <tr>
+      <th>LV</th>
+      <th>TIME</th>
+      <th>SB</th>
+      <th>BB</th>
+      <th>ANTE</th>
+      <th>DURATION</th>
+      <th>DELETE</th>
+    </tr>
+  </thead>
+  <tbody id="structure-body">
+  </tbody>
+</table>
+
+<div class="add-button">
+  <button onclick="addRow()">+LV</button>
+  <button onclick="insertBreak()">+BREAK</button>
+  <div class="add-button">
+  <button onclick="saveToFirestore()">💾 Save for tour</button>
+</div>
+</div>
+
+<script>
+let sbFormatTimer = null;
+let tourName = null;
+let structureRef = null;
+let STORAGE_KEY = '';
+
+firebase.auth().onAuthStateChanged(user => {
+  if (!user) {
+    alert("กรุณาเข้าสู่ระบบก่อนใช้งาน");
+    location.href = "index.html";
+    return;
+  }
+
+  const params = new URLSearchParams(location.search);
+  tourName = params.get("tour");
+  STORAGE_KEY = `structure-draft-${tourName}`;
+
+  if (!tourName) {
+    alert("❌ ไม่พบชื่อทัวร์ใน URL");
+    location.href = "index.html";
+    return;
+  }
+
+  document.getElementById("tour-name").textContent = tourName;
+  structureRef = firebase.firestore().collection("tournaments").doc(tourName).collection("structure");
+
+  const saved = localStorage.getItem(STORAGE_KEY);
+if (saved) {
+  JSON.parse(saved).forEach(data => addRow(data));
+} else {
+  loadStructureFromFirestore(); // โหลดจาก Firestore ถ้าไม่มี draft
+}
+
+});
+
+function addRow(data = {}, insertAt = null) {
+  const tbody = document.getElementById("structure-body");
+  const row = document.createElement("tr");
+  const defaultDuration = document.querySelector("#structure-body tr:first-child input[placeholder='duration']")?.value || '';
+
+  const isBreak = data.isBreak;
+
+  row.innerHTML = isBreak ? `
+    <td>-</td>
+    <td><input type="text" placeholder="time" value="${data.time || ''}" oninput="saveDraft()"></td>
+    <td colspan="3"><input type="text" class="note-input" placeholder="Break Note" value="${data.note || ''}" oninput="saveDraft()"></td>
+    <td><input type="number" placeholder="duration" value="${data.duration || defaultDuration}" oninput="saveDraft(); updateTimeColumnImmediate()"></td>
+    <td><button onclick="deleteRow(this)">🗑️</button></td>
+  ` : `
+    <td></td>
+    <td><input type="text" placeholder="time" value="${data.time || ''}" readonly></td>
+    <td><input type="text" placeholder="sb" value="${data.sb || ''}" oninput="handleSBChange(this)"></td>
+<td><input type="text" placeholder="bb" value="${data.bb || ''}" oninput="handleBBChange(this)"></td>
+<td><input type="text" placeholder="ante" value="${data.ante || ''}" oninput="saveDraft()"></td>
+    <td><input type="number" placeholder="duration" value="${data.duration || defaultDuration}" oninput="saveDraft(); updateTimeColumn()"></td>
+    <td><button onclick="deleteRow(this)">🗑️</button></td>
+  `;
+
+  if (insertAt !== null && insertAt < tbody.children.length) {
+    tbody.insertBefore(row, tbody.children[insertAt]);
+  } else {
+    tbody.appendChild(row);
+  }
+
+  updateLVNumbers();
+  updateTimeColumn();
+  saveDraft();
+}
+
+function insertBreak() {
+  const lv = prompt("📌 ต้องการแทรก Break หลัง LV ไหน?");
+  const lvNum = parseInt(lv);
+  if (isNaN(lvNum) || lvNum <= 0) return;
+
+  const rows = Array.from(document.querySelectorAll("#structure-body tr"));
+  let insertIndex = -1;
+  let currentLV = 0;
+
+  for (let i = 0; i < rows.length; i++) {
+    const noteInput = rows[i].querySelector(".note-input");
+    if (!noteInput) {
+      currentLV++;
+      if (currentLV === lvNum) {
+        insertIndex = i + 1; // แทรกหลังเลเวลที่ต้องการ
+        break;
+      }
+    }
+  }
+
+  if (insertIndex !== -1) {
+    const note = prompt("📝 ใส่ข้อความหมายเหตุช่วง Break (จะแสดงในตาราง):", "Break Time");
+    addRow({ isBreak: true, time: '', duration: '', note: note || '' }, insertIndex);
+  } else {
+    alert("❌ ไม่พบเลเวลที่ต้องการแทรก Break");
+  }
+}
+
+
+let sbTimer;
+function handleSBChange(input) {
+  clearTimeout(sbFormatTimer); // เคลียร์รอบเก่า
+
+  sbFormatTimer = setTimeout(() => {
+    const row = input.closest('tr');
+    const sb = parseNumber(input.value);
+    if (!isNaN(sb)) {
+      const bb = sb * 2;
+      const bbInput = row.querySelector("input[placeholder='bb']");
+      const anteInput = row.querySelector("input[placeholder='ante']");
+
+      bbInput.value = formatNumber(bb);
+      anteInput.value = formatNumber(bb);
+      input.value = formatNumber(sb); // แปลงตอนนี้เลย
+
+      saveDraft();
+      updateTimeColumn();
+    }
+  }, 600); // 👈 ปรับ delay ตรงนี้ (หน่วย ms)
+}
+
+
+let bbTimer;
+function handleBBChange(input) {
+  clearTimeout(bbTimer);
+  bbTimer = setTimeout(() => {
+    const row = input.closest('tr');
+    const bb = parseNumber(input.value);
+    if (!isNaN(bb)) {
+      const anteInput = row.querySelector("input[placeholder='ante']");
+      anteInput.value = formatNumber(bb);
+      input.value = formatNumber(bb);
+
+      saveDraft();
+      updateTimeColumn();
+    }
+  }, 400);
+}
+
+
+
+
+
+
+function deleteRow(button) {
+  const row = button.parentElement.parentElement;
+  row.remove();
+  updateLVNumbers();
+  updateTimeColumn();
+  saveDraft();
+}
+
+function updateLVNumbers() {
+  const rows = document.querySelectorAll("#structure-body tr");
+  let lvCount = 1;
+  rows.forEach(row => {
+    const noteInput = row.querySelector(".note-input");
+    const lvCell = row.children[0];
+    if (noteInput) {
+      lvCell.textContent = "-";
+    } else {
+      lvCell.textContent = lvCount++;
+    }
+  });
+}
+
+function updateTimeColumn() {
+  const rows = document.querySelectorAll("#structure-body tr");
+  let totalMinutes = 0;
+  rows.forEach(row => {
+    const durationInput = row.querySelector("input[placeholder='duration']");
+    const timeInput = row.querySelector("input[placeholder='time']");
+    if (!durationInput || !timeInput) return;
+
+    const duration = parseInt(durationInput.value || 0);
+    timeInput.value = minutesToTime(totalMinutes + duration);
+    totalMinutes += duration;
+  });
+  saveDraft();
+}
+
+function minutesToTime(minutes) {
+  const hrs = Math.floor(minutes / 60).toString().padStart(2, '0');
+  const mins = (minutes % 60).toString().padStart(2, '0');
+  return `${hrs}:${mins}`;
+}
+
+function saveDraft() {
+  const rows = document.querySelectorAll("#structure-body tr");
+  const data = Array.from(rows).map(row => {
+    const noteInput = row.querySelector(".note-input");
+    if (noteInput) {
+      return {
+        isBreak: true,
+        note: noteInput.value || '',
+        duration: row.querySelector("input[placeholder='duration']")?.value || '',
+        time: row.querySelector("input[placeholder='time']")?.value || ''
+      };
+    } else {
+      return {
+        sb: row.querySelector("input[placeholder='sb']")?.value || '',
+        bb: row.querySelector("input[placeholder='bb']")?.value || '',
+        ante: row.querySelector("input[placeholder='ante']")?.value || '',
+        duration: row.querySelector("input[placeholder='duration']")?.value || '',
+        time: row.querySelector("input[placeholder='time']")?.value || ''
+      };
+    }
+  });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function minutesToTime(minutes) {
+  const hrs = Math.floor(minutes / 60).toString().padStart(2, '0');
+  const mins = (minutes % 60).toString().padStart(2, '0');
+  return `${hrs}:${mins}`;
+}
+function updateTimeColumnImmediate() {
+  requestAnimationFrame(updateTimeColumn);
+}
+function formatNumber(value) {
+  value = parseFloat(value);
+  if (isNaN(value)) return '';
+  if (value >= 1e9) return (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'b';
+  if (value >= 1e6) return (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'm';
+  if (value >= 1e3) return (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'k';
+  return value.toString();
+}
+
+function parseNumber(value) {
+  if (typeof value === 'number') return value;
+  if (!value) return 0;
+  value = value.toLowerCase();
+  if (value.endsWith('k')) return parseFloat(value) * 1e3;
+  if (value.endsWith('m')) return parseFloat(value) * 1e6;
+  if (value.endsWith('b')) return parseFloat(value) * 1e9;
+  return parseFloat(value);
+}
+async function saveToFirestore() {
+  const rows = document.querySelectorAll("#structure-body tr");
+
+  // ลบข้อมูลเก่า
+  const snapshot = await structureRef.get();
+  const batchDelete = firebase.firestore().batch();
+  snapshot.forEach(doc => batchDelete.delete(doc.ref));
+  await batchDelete.commit();
+
+  // เพิ่มข้อมูลใหม่
+  const batch = firebase.firestore().batch();
+  rows.forEach((row, index) => {
+    const noteInput = row.querySelector(".note-input");
+    let rowData = {};
+    if (noteInput) {
+      rowData = {
+        isBreak: true,
+        note: noteInput.value || '',
+        duration: row.querySelector("input[placeholder='duration']")?.value || '',
+        time: row.querySelector("input[placeholder='time']")?.value || ''
+      };
+    } else {
+      rowData = {
+        sb: row.querySelector("input[placeholder='sb']")?.value || '',
+        bb: row.querySelector("input[placeholder='bb']")?.value || '',
+        ante: row.querySelector("input[placeholder='ante']")?.value || '',
+        duration: row.querySelector("input[placeholder='duration']")?.value || '',
+        time: row.querySelector("input[placeholder='time']")?.value || ''
+      };
+    }
+    const docRef = structureRef.doc(String(index + 1));
+    batch.set(docRef, rowData);
+  });
+  await batch.commit();
+
+  // ล้าง localStorage และโหลดใหม่
+  alert("✅ บันทึกลง Firestore สำเร็จแล้ว");
+  localStorage.removeItem(STORAGE_KEY);
+  loadStructureFromFirestore();
+}
+function loadStructureFromFirestore() {
+  structureRef.orderBy(firebase.firestore.FieldPath.documentId())
+    .onSnapshot(snapshot => {
+      document.getElementById("structure-body").innerHTML = "";
+
+      if (snapshot.empty) {
+        console.log("📭 ยังไม่มี structure สำหรับทัวร์นี้");
+        return;
+      }
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        addRow(data);
+      });
+    });
+}
+
+
+
+
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>Luxu Tournament Index</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-init.js"></script>
+  <style>
+#status-popup button {
+  margin: 5px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+#data-container table {
+  border-collapse: collapse;
+  width: 100%;
+  background-color: #fff;
+  font-size: 14px;
+  margin-top: 10px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+#data-container th, #data-container td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+
+#data-container th {
+  background-color: #f0f0f0;
+  color: #333;
+  font-weight: bold;
+}
+
+#data-container td button {
+  padding: 4px 8px;
+  font-size: 12px;
+  background-color: #f8f8f8;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#data-container td button:hover {
+  background-color: #e0e0e0;
+}
+
+#data-container img {
+  vertical-align: middle;
+  margin-left: 5px;
+  cursor: pointer;
+}
+
+.layout {
+  display: flex;
+  flex-wrap: wrap;        /* ✅ ให้ wrap ได้เมื่อแคบ */
+  align-items: flex-start;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.left-panel {
+  flex: 0 0 35%;           /* ✅ ความกว้างคงที่ */
+  max-width: 400px;
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.right-panel {
+  flex: 1;
+  min-width: 300px;
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .layout {
+    flex-direction: column;
+  }
+  .left-panel,
+  .right-panel {
+    width: 100%;
+    flex: none;
+  }
+}
+
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      margin: 0;
+    }
+    .hidden { display: none; }
+    #data-container div { margin: 5px 0; }
+    button { padding: 6px 14px; margin: 5px; }
+   
+    .menu-buttons button {
+      font-size: 14px;
+      padding: 6px 10px;
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+    }
+    .form-group { margin-bottom: 12px; }
+    label span.required { color: red; }
+    .form-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .form-row input, .form-row select {
+      flex: 1;
+      padding: 6px;
+    }
+    .toolbar-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    .toolbar-buttons button {
+      padding: 6px 12px;
+    }
+   
+  </style>
+</head>
+<body>
+  <div class="titlepagr" style="text-align: center;">
+<h1>🎯 Luxu Tournament Index</h1>
+<p>👤 <span id="user-email"></span> <button onclick="logout()">Logout</button></p>
+</div>
+<div class="layout">
+  <div class="left-panel">
+    <div class="menu-buttons">
+      <button onclick="showCreateForm()">➕ Create Tour</button>
+      <select id="tour-list">
+      <option value="">-- Selecte tour --</option>
+    </select>
+      <button onclick="confirmLoadTour()">📂 Load Tour</button>
+      <button onclick="deleteTour()">🗑️ Delete Tour</button>
+    </div>
+    
+    <div id="create-form">
+  <div class="form-group">
+    <label>Tournament Name <span class="required">*</span></label>
+    <input type="text" id="tournamentName" required>
+  </div>
+  <div class="form-row">
+    <div>
+      <label>Start Date <span class="required">*</span></label>
+      <input type="date" id="startDate" required>
+    </div>
+    <div>
+      <label>Start Time <span class="required">*</span></label>
+      <input type="time" id="startTime" required>
+    </div>
+  </div>
+  <div class="form-row">
+    <div>
+      <label>Game Type <span class="required">*</span></label>
+      <select id="gameType" required>
+        <option value="">--เลือก--</option>
+        <option value="Tour">Tour</option>
+        <option value="Bounty">Bounty</option>
+      </select>
+    </div>
+    <div>
+      <label>Guarantee</label>
+      <input type="number" id="guarantee">
+    </div>
+  </div>
+  <div class="form-row">
+    <div>
+      <label>Buy-in <span class="required">*</span></label>
+      <input type="number" id="buyIn" required>
+    </div>
+    <div>
+      <label>Re-buy <span class="required">*</span></label>
+      <input type="number" id="reBuy" required>
+    </div>
+  </div>
+  <div class="form-row">
+    <div>
+      <label>Allow Add-on <span class="required">*</span></label>
+      <select id="allowAddon" onchange="handleAddonChange()">
+        <option value="Y">Y</option>
+        <option value="N" selected>N</option>
+      </select>
+    </div>
+    <div>
+      <label>Add-on Cost <span class="required" id="addonCostRequired" style="display:none">*</span></label>
+      <input type="number" id="addonCost" disabled>
+    </div>
+  </div>
+  <div class="form-row">
+    <div>
+      <label>Starting Stack <span class="required">*</span></label>
+      <input type="number" id="startingStack" oninput="autoFillAddonStack()" required>
+    </div>
+    <div>
+      <label>Add-on Stack</label>
+      <input type="number" id="addonStack" disabled>
+    </div>
+  </div>
+  <div class="toolbar-buttons">
+    <button onclick="showPlayerPanel()">+Player</button>
+    <button onclick="window.open('structure.html?tour=' + currentTourName, '_blank')">Structure</button>
+    <button onclick="openPrizepool()">Prizepool</button>
+    <button onclick="enableEditMode()">Edit</button>
+    <button onclick="window.open('display.html?tour=' + currentTourName, '_blank')">Display</button>
+    <button onclick="saveTournament()">Save</button>
+  </div>
+</div>
+  </div>
+  <div class="right-panel">
+    <div id="data-container"></div>
+  </div>
+</div>
+<div id="koModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+  background:#fff; border:2px solid #000; padding:20px; z-index:1000;">
+  <h3>🩸 เลือกผู้เล่นที่คุณ KO</h3>
+  <select id="koTargetSelect" style="width:100%; padding:5px; margin-bottom:10px;"></select>
+  <button onclick="confirmKO()">✅ ยืนยัน KO</button>
+  <button onclick="document.getElementById('koModal').style.display='none'">❌ ยกเลิก</button>
+</div>
+
+<script>
+let latestTourData = {};
+let currentTourName = null;
+let isEditMode = false;
+
+  function logout() {
+    firebase.auth().signOut();
+  }
+
+  function showCreateForm() {
+  resetCreateForm();        // 🔄 ล้างฟิลด์ทั้งหมด
+  lockFormFields(false);    // ✅ ปลดล็อคฟิลด์
+  document.getElementById("create-form").classList.remove("hidden");
+  handleAddonChange();      // รีเซ็ตการทำงานของช่อง add-on
+}
+
+
+  function handleAddonChange() {
+    const allow = document.getElementById("allowAddon").value;
+    const costLabel = document.getElementById("addonCostRequired");
+    const costInput = document.getElementById("addonCost");
+    const addonStack = document.getElementById("addonStack");
+    if (allow === "Y") {
+      costLabel.style.display = 'inline';
+      costInput.required = true;
+      costInput.disabled = false;
+      addonStack.disabled = false;
+      autoFillAddonStack();
+    } else {
+      costLabel.style.display = 'none';
+      costInput.required = false;
+      costInput.disabled = true;
+      costInput.value = '';
+      addonStack.value = '';
+      addonStack.disabled = true;
+    }
+  }
+
+  function autoFillAddonStack() {
+    const allow = document.getElementById("allowAddon").value;
+    const base = parseFloat(document.getElementById("startingStack").value);
+    const addonStack = document.getElementById("addonStack");
+    if (allow === "Y" && base) {
+      addonStack.value = Math.round(base * 1.5);
+    }
+  }
+
+  function saveTournament() {
+    const name = document.getElementById("tournamentName").value.trim();
+    const startDate = document.getElementById("startDate").value;
+    const startTime = document.getElementById("startTime").value;
+    const gameType = document.getElementById("gameType").value;
+    const guarantee = document.getElementById("guarantee").value;
+    const buyIn = document.getElementById("buyIn").value;
+    const reBuy = document.getElementById("reBuy").value;
+    const allowAddon = document.getElementById("allowAddon").value;
+    const addonCost = document.getElementById("addonCost").value;
+    const startingStack = document.getElementById("startingStack").value;
+    const addonStack = document.getElementById("addonStack").value;
+
+    if (!name || !startDate || !startTime || !gameType || !buyIn || !reBuy || !startingStack || (allowAddon === 'Y' && !addonCost)) {
+      alert("กรุณากรอกข้อมูลที่จำเป็นให้ครบ");
+      return;
+    }
+
+    const tourData = {
+      name,
+      startDate,
+      startTime,
+      gameType,
+      guarantee: guarantee || null,
+      buyIn: parseFloat(buyIn),
+      reBuy: parseFloat(reBuy),
+      allowAddon,
+      addonCost: allowAddon === 'Y' ? parseFloat(addonCost) : null,
+      startingStack: parseFloat(startingStack),
+      addonStack: allowAddon === 'Y' ? parseFloat(addonStack) : null,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    const lastName = localStorage.getItem("lastLoadedTour");
+
+if (name === lastName) {
+  const confirmOverwrite = confirm("ต้องการบันทึกทับทัวร์เดิมหรือไม่?");
+  if (!confirmOverwrite) {
+    const newName = prompt("โปรดระบุชื่อทัวร์ใหม่:");
+    if (!newName) {
+      alert("❌ ยกเลิกการบันทึก เพราะไม่ได้ระบุชื่อใหม่");
+      return;
+    }
+    tourData.name = newName;
+    db.collection("tournaments").doc(newName).set(tourData)
+      .then(() => {
+        alert("✅ บันทึกทัวร์ใหม่สำเร็จ");
+        lockFormFields(true); // ✅ ล็อกฟอร์มทันที
+        localStorage.setItem("lastLoadedTour", newName);
+        currentTourName = newName;
+        isEditMode = false;
+        loadTourList();
+      })
+      .catch(err => alert("❌ เกิดข้อผิดพลาด: " + err.message));
+  } else {
+    db.collection("tournaments").doc(name).set(tourData)
+      .then(() => {
+        alert("✅ บันทึกทัวร์เดิมสำเร็จ");
+        lockFormFields(true); // ✅ ล็อกฟอร์มทันที
+        localStorage.setItem("lastLoadedTour", name);
+        currentTourName = name;
+        isEditMode = false;
+        loadTourList();
+      })
+      .catch(err => alert("❌ เกิดข้อผิดพลาด: " + err.message));
+  }
+} else {
+  db.collection("tournaments").doc(name).set(tourData)
+    .then(() => {
+      alert("✅ บันทึกทัวร์ใหม่สำเร็จ");
+      lockFormFields(true); // ✅ ล็อกฟอร์มทันที
+      localStorage.setItem("lastLoadedTour", name);
+      currentTourName = name;
+      isEditMode = false;
+      showPlayerPanel();
+      loadTourList();
+    })
+    .catch(err => alert("❌ เกิดข้อผิดพลาด: " + err.message));
+    
+}
+
+  }
+
+  function confirmLoadTour() {
+  const tourName = document.getElementById("tour-list").value;
+  if (!tourName) {
+    alert("❗ กรุณาเลือกทัวร์ก่อนโหลด");
+    return;
+  }
+  const confirmLoad = confirm("คุณต้องการโหลดทัวร์ชื่อ: " + tourName + " หรือไม่?");
+  if (confirmLoad) loadTour(tourName);
+  
+}
+
+function loadTour(tourName) {
+  db.collection("tournaments").doc(tourName).get().then(doc => {
+    if (!doc.exists) {
+      alert("❌ ไม่พบทัวร์ที่ชื่อ: " + tourName);
+      return;
+    }
+    const data = doc.data();
+
+    localStorage.setItem("lastLoadedTour", tourName);
+    document.getElementById("tournamentName").value = data.name || "";
+    document.getElementById("startDate").value = data.startDate || "";
+    document.getElementById("startTime").value = data.startTime || "";
+    document.getElementById("gameType").value = data.gameType || "";
+    document.getElementById("guarantee").value = data.guarantee || "";
+    document.getElementById("buyIn").value = data.buyIn || "";
+    document.getElementById("reBuy").value = data.reBuy || "";
+    document.getElementById("allowAddon").value = data.allowAddon || "N";
+    document.getElementById("addonCost").value = data.addonCost || "";
+    document.getElementById("startingStack").value = data.startingStack || "";
+    document.getElementById("addonStack").value = data.addonStack || "";
+    handleAddonChange();
+
+    // ✅ เพิ่มตรงนี้
+    currentTourName = tourName;
+    isEditMode = false;
+    lockFormFields(true);
+    if (localStorage.getItem("showRightPanel") === "true") {
+  showPlayerPanel();
+}    alert("✅ โหลดทัวร์เรียบร้อยแล้ว");
+  }).catch(err => {
+    console.error("โหลดทัวร์ล้มเหลว", err);
+    alert("❌ โหลดข้อมูลล้มเหลว: " + err.message);
+  });
+}
+
+function loadTourList() {
+  const select = document.getElementById("tour-list");
+
+  db.collection("tournaments").orderBy("createdAt", "desc").onSnapshot(snapshot => {
+    select.innerHTML = '<option value="">-- Selecte tour --</option>';
+    snapshot.forEach(doc => {
+      const option = document.createElement("option");
+      option.value = doc.id;
+      option.textContent = doc.id;
+      select.appendChild(option);
+    });
+  }, err => {
+    console.error("ไม่สามารถโหลดรายชื่อทัวร์แบบเรียลไทม์:", err);
+  });
+}
+
+function loadLastTourIfExists() {
+  const last = localStorage.getItem("lastLoadedTour");
+  if (last) loadTour(last);
+}
+window.onload = function () {
+  initFirebaseAuth();
+  loadTourList();
+
+  const last = localStorage.getItem("lastLoadedTour");
+  if (last) {
+    loadTour(last);
+  } else {
+    showCreateForm(); // 👉 เรียกเฉพาะเมื่อไม่มี tour ที่เคยโหลด
+  }
+};
+function deleteTour() {
+  const tourName = document.getElementById("tour-list").value;
+  if (!tourName) {
+    alert("❗ กรุณาเลือกทัวร์ก่อนลบ");
+    return;
+  }
+
+  const confirmDelete = confirm("คุณแน่ใจว่าต้องการลบทัวร์: " + tourName + " ใช่ไหม?");
+  if (!confirmDelete) return;
+
+  db.collection("tournaments").doc(tourName).delete()
+    .then(() => {
+      alert("🗑️ ลบทัวร์เรียบร้อยแล้ว");
+
+      // ถ้าเป็นทัวร์ที่โหลดอยู่ ให้ลบจาก localStorage
+      if (localStorage.getItem("lastLoadedTour") === tourName) {
+        localStorage.removeItem("lastLoadedTour");
+        localStorage.removeItem("showRightPanel");
+        localStorage.removeItem("showRightPanel");
+      }
+
+      // โหลดลิสต์ใหม่แบบเรียลไทม์
+      loadTourList();
+
+      // ล้างข้อมูลในฟอร์มทีละช่อง
+      const fields = [
+        "tournamentName", "startDate", "startTime", "gameType",
+        "guarantee", "buyIn", "reBuy", "allowAddon",
+        "addonCost", "startingStack", "addonStack"
+      ];
+      fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+      });
+
+      // รีเซ็ตสถานะ dependent เช่น disable ช่อง addon
+      handleAddonChange();
+    })
+    .catch(err => {
+      console.error("ลบทัวร์ล้มเหลว:", err);
+      alert("❌ ไม่สามารถลบทัวร์ได้: " + err.message);
+    });
+}
+function resetCreateForm() {
+  const ids = [
+    "tournamentName", "startDate", "startTime", "gameType",
+    "guarantee", "buyIn", "reBuy", "allowAddon",
+    "addonCost", "startingStack", "addonStack"
+  ];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (el.tagName === 'SELECT') {
+        el.selectedIndex = id === 'allowAddon' ? 1 : 0; // N เป็นค่า default
+      } else {
+        el.value = "";
+      }
+    }
+  });
+  localStorage.removeItem("lastLoadedTour");
+  handleAddonChange();
+}
+function lockFormFields(lock) {
+  const ids = [
+    "tournamentName", "startDate", "startTime", "gameType",
+    "guarantee", "buyIn", "reBuy", "allowAddon",
+    "addonCost", "startingStack", "addonStack"
+  ];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = lock;
+  });
+}
+function enableEditMode() {
+  if (!currentTourName) {
+    alert("ยังไม่มีทัวร์ที่โหลดมาเพื่อแก้ไข");
+    return;
+  }
+  lockFormFields(false); // 🔓 ปลดล็อคทุกช่อง input
+  isEditMode = true;
+  alert("🔓 พร้อมให้แก้ไขแล้ว กรุณาแก้ไขและกด Save เพื่อบันทึกใหม่");
+}
+
+function showPlayerPanel() {
+  localStorage.setItem("showRightPanel", "true");
+
+  if (!currentTourName) {
+    alert("กรุณาสร้างหรือโหลดทัวร์ก่อน");
+    return;
+  }
+
+  db.collection("tournaments").doc(currentTourName).onSnapshot(doc => {
+    const data = doc.data();
+    const panel = document.getElementById("data-container");
+    panel.innerHTML = "";
+
+    // --- กล่อง TOUR INFO ---
+    const orderedFields = [
+      { key: 'tournamentName', label: 'TOURNAMENT ', value: currentTourName },
+      { key: 'startDate', label: 'DATE ' },
+      { key: 'startTime', label: 'TIME ' },
+      { key: 'gameType', label: 'TYPE ' },
+      { key: 'guarantee', label: 'GUARANTEE ' },
+      { key: 'buyIn', label: 'BUY-IN ' },
+      { key: 'addonCost', label: 'ADD-ON ' },
+      { key: 'rebuyChips', label: 'RE-BUY CHIPS ' },
+      { key: 'reBuy', label: 'RE-BUY ' },
+      { key: 'startingStack', label: 'STARTING STACK ' },
+      { key: 'addonStack', label: 'ADD-ON STACK ' }
+    ];
+
+    let infoHTML = `<div style="border-bottom:1px solid #ccc; margin-bottom:10px;">
+      <h3>📋 TOUR INFO</h3>
+      <div style="display:flex; flex-wrap:wrap; gap:10px;">`;
+
+    orderedFields.forEach(({ key, label, value }) => {
+      const showValue = value !== undefined ? value : data[key];
+      if (showValue !== undefined && showValue !== "") {
+        infoHTML += `<div style="min-width:200px;"><strong>${label}:</strong> ${showValue}</div>`;
+      }
+    });
+
+    infoHTML += `</div></div>`;
+    panel.innerHTML += infoHTML;
+
+    // --- กล่อง TOUR STATE ---
+    panel.innerHTML += `
+      <div id="bounty-state-box" style="border-bottom:1px solid #ccc; margin-bottom:10px;">
+  <h3>📊 BOUNTY STATE</h3>
+  <p id="entry-summary">Entry: 0, Re-entry: 0, Add-on: 0, Remaining: 0</p>
+  <p id="stack-summary">Total Stack: 0, Average Stack: 0</p>  
+</div>
+    `;
+
+    // --- เรียกตารางผู้เล่นตามประเภททัวร์ ---
+    if (data.gameType === "Tour") {
+      renderTourTable(data);
+    } else if (data.gameType === "Bounty") {
+      renderBountyTable(data);
+    }
+  });
+}
+function renderTourTable(data) {
+  const panel = document.getElementById("data-container");
+  panel.innerHTML += `
+    <h3>🧍‍♂️ Add Player</h3>
+    <input type="text" id="newPlayerName" placeholder="Player name">
+    <button onclick="addPlayer()">➕ Entry</button>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Player Name</th><th>Status</th>
+          <th>Re-buy</th><th>Add-on</th><th>Delete</th>
+        </tr>
+      </thead>
+      <tbody id="tour-player-table-body"></tbody>
+    </table>
+  `;
+
+  const tbody = document.getElementById("tour-player-table-body");
+  const tourRef = db.collection("tournaments").doc(currentTourName).collection("players");
+  const startingStack = Number(data.startingStack || 0);
+  const addonStack = Number(data.addonStack || 0);
+
+  tourRef.orderBy("createdAt").onSnapshot(snapshot => {
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    let index = 1, entry = 0, rebuy = 0, addon = 0, remaining = 0;
+
+    snapshot.forEach(doc => {
+      const p = doc.data();
+      entry++;
+      if (p.status === "Active") remaining++;
+      if (p.reBuyCount) rebuy += p.reBuyCount;
+      if (p.addonUsed) addon++;
+
+      const rebuyBtn = p.status === "BUST"
+        ? `<button onclick="handleRebuy('${doc.id}')">Re-buy (${p.reBuyCount || 0})</button>`
+        : `<button disabled style="opacity:0.4">Re-buy (${p.reBuyCount || 0})</button>`;
+
+      const addonBtn = p.status === "Active"
+        ? (p.addonUsed ? '✅' : `<button onclick="handleAddon('${doc.id}')">Add-on</button>`)
+        : "❌";
+
+      const statusBtn = p.status === "Active"
+        ? `<img src="gear.png" style="width:16px" onclick="setStatus('${doc.id}')">`
+        : "❌";
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${index++}</td>
+        <td>${doc.id}</td>
+        <td>${p.status} ${statusBtn}</td>
+        <td>${rebuyBtn}</td>
+        <td>${addonBtn}</td>
+        <td><button onclick="removePlayer('${doc.id}')">Delete</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    const totalStack = (entry + rebuy) * startingStack + addon * addonStack;
+    const avgStack = remaining > 0 ? Math.floor(totalStack / remaining) : 0;
+
+    document.getElementById("entry-summary").innerText =
+      `Entry: ${entry}, Re-entry: ${rebuy}, Add-on: ${addon}, Remaining: ${remaining}`;
+    document.getElementById("stack-summary").innerText =
+      `Total Stack: ${totalStack}, Average Stack: ${avgStack}`;
+  });
+}
+
+function renderBountyTable(data) {
+  const panel = document.getElementById("data-container");
+  panel.innerHTML += `
+    <h3>🧍‍♂️ Add Player</h3>
+    <input type="text" id="newPlayerName" placeholder="Player name">
+    <button onclick="addPlayerBounty()">➕ Entry</button>
+    <table border="1" style="margin-top:10px; width:100%; text-align:left;">
+      <thead>
+        <tr>
+          <th>#</th><th>Player Name</th><th>Status</th><th>Bounty</th>
+          <th>KO</th><th>Earning</th><th>Re-buy</th><th>Add-on</th><th>Delete</th>
+        </tr>
+      </thead>
+      <tbody id="bounty-player-table-body"></tbody>
+    </table>
+  `;
+
+  const tbody = document.getElementById("bounty-player-table-body");
+  const playerRef = db.collection("tournaments").doc(currentTourName).collection("players");
+  const bountyBase = Math.floor(Number(data.buyIn || 0) / 4);
+  const startingStack = Number(data.startingStack || 0);
+  const addonStack = Number(data.addonStack || 0);
+
+  playerRef.orderBy("createdAt").onSnapshot(snapshot => {
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    let index = 1;
+    let entryCount = 0, rebuyCount = 0, addonCount = 0, aliveCount = 0;
+
+    snapshot.forEach(doc => {
+      const p = doc.data();
+      const isAlive = p.status === "ALIVE";
+
+      entryCount++;
+      rebuyCount += p.rebuyUsed || 0;
+      if (p.addonUsed) addonCount++;
+      if (isAlive) aliveCount++;
+
+      const koCount = p.koCount || 0;
+      const rebuyUsed = p.rebuyUsed || 0;
+
+      const rebuyBtn = !isAlive
+        ? `<button onclick="handleRebuy('${doc.id}')">Re-buy (${rebuyUsed})</button>`
+        : `<button disabled style="opacity:0.4">Re-buy (${rebuyUsed})</button>`;
+
+      const addonBtn = isAlive && !p.addonUsed
+        ? `<button onclick="handleAddon('${doc.id}')">Add-on</button>`
+        : p.addonUsed ? '✔️' : "❌";
+
+      const koBtn = isAlive
+        ? `<button onclick="handleKO('${doc.id}')">KO (${koCount})</button>`
+        : `<button disabled style="opacity:0.4">KO (${koCount})</button>`;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${index++}</td>
+        <td>${doc.id}</td>
+        <td>${p.status}</td>
+        <td>${p.bounty || 0}</td>
+        <td>${koBtn}</td>
+        <td>${p.earning || 0}</td>
+        <td>${rebuyBtn}</td>
+        <td>${addonBtn}</td>
+        <td><button onclick="removePlayer('${doc.id}')">Delete</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    const totalStack = (entryCount + rebuyCount) * startingStack + addonCount * addonStack;
+    const avgStack = aliveCount > 0 ? Math.floor(totalStack / aliveCount) : 0;
+
+    document.getElementById("entry-summary").innerText =
+      `Entry: ${entryCount}, Re-entry: ${rebuyCount}, Add-on: ${addonCount}, Remaining: ${aliveCount}`;
+    document.getElementById("stack-summary").innerText =
+      `Total Stack: ${totalStack}, Average Stack: ${avgStack}`;
+  });
+}
+
+
+function addPlayer() {
+  const name = document.getElementById("newPlayerName").value.trim();
+  if (!name) return alert("กรุณากรอกชื่อผู้เล่น");
+
+  db.collection("tournaments").doc(currentTourName).get().then(doc => {
+    const data = doc.data();
+    const gameType = data.gameType;
+
+    const newData = {
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    if (gameType === "Tour") {
+      newData.status = "Active";
+      newData.reBuyCount = 0;
+      newData.addonUsed = false;
+    } else {
+      newData.status = "ALIVE";
+      newData.bounty = Math.floor(Number(data.buyIn || 0) / 4);
+      newData.koCount = 0;
+      newData.earning = 0;
+      newData.rebuyUsed = 0;
+      newData.addonUsed = false;
+    }
+
+    db.collection("tournaments").doc(currentTourName).collection("players")
+      .doc(name).set(newData)
+      .then(() => {
+        alert(`✅ เพิ่มผู้เล่น ${name} สำเร็จ`);
+        document.getElementById("newPlayerName").value = "";
+      });
+  });
+}
+
+function removePlayer(name) {
+  const confirmDel = confirm("คุณแน่ใจว่าต้องการลบผู้เล่น: " + name + "?");
+  if (!confirmDel) return;
+  db.collection("tournaments").doc(currentTourName).collection("players").doc(name).delete();
+}
+function removePlayer(playerName) {
+  if (!confirm(`ต้องการลบผู้เล่น ${playerName} หรือไม่?`)) return;
+
+  const playerRef = db.collection("tournaments").doc(currentTourName).collection("players").doc(playerName);
+
+  playerRef.get().then(doc => {
+    if (!doc.exists) return;
+
+    const data = doc.data();
+    const entryDelta = 1;
+    const rebuyDelta = data.reBuyCount || 0;
+    const addonDelta = data.addonUsed ? 1 : 0;
+    const remainingDelta = data.status === "ALIVE" ? 1 : 0;
+
+    // ลบผู้เล่นออก
+    playerRef.delete().then(() => {
+      console.log(`✅ ลบผู้เล่น ${playerName} แล้ว`);
+
+      // คำนวณใหม่โดย onSnapshot จะทำงานอัตโนมัติ ไม่ต้องอัปเดตนับเองตรงนี้
+      // แต่ถ้าคุณใช้ระบบที่ไม่เรียก snapshot ใหม่ให้ manually คำนวณเองที่นี่
+    });
+  });
+}
+function setStatus(playerName) {
+  // ลบ popup เก่าออกก่อน
+  const old = document.getElementById("status-popup");
+  if (old) old.remove();
+
+  // สร้าง popup
+  const popup = document.createElement("div");
+  popup.id = "status-popup";
+  popup.style.position = "fixed";
+  popup.style.top = "30%";
+  popup.style.left = "50%";
+  popup.style.transform = "translate(-50%, -50%)";
+  popup.style.background = "#fff";
+  popup.style.border = "1px solid #ccc";
+  popup.style.padding = "20px";
+  popup.style.zIndex = "9999";
+  popup.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
+  popup.innerHTML = `
+    <h3>⚙️ เปลี่ยนสถานะของ ${playerName}</h3>
+    <button onclick="confirmStatus('${playerName}', 'BUST')">💥 BUST</button>
+    <button onclick="confirmStatus('${playerName}', 'OUT')">🚪 OUT</button>
+    <button onclick="document.getElementById('status-popup').remove()">❌ Cancel</button>
+  `;
+  document.body.appendChild(popup);
+}
+
+function confirmStatus(playerName, status) {
+  db.collection("tournaments")
+    .doc(currentTourName)
+    .collection("players")
+    .doc(playerName)
+    .update({ status: status })
+    .then(() => {
+      console.log(`✅ เปลี่ยนสถานะ ${playerName} เป็น ${status}`);
+      document.getElementById('status-popup').remove();
+    });
+}
+
+function handleRebuy(playerId) {
+  if (!confirm(`คุณต้องการ Re-buy ให้กับผู้เล่น ${playerId} หรือไม่?`)) return;
+
+  db.collection("tournaments").doc(currentTourName).get().then(doc => {
+    const data = doc.data();
+    const gameType = data.gameType;
+
+    if (gameType === "Tour") {
+      db.collection("tournaments").doc(currentTourName).collection("players").doc(playerId).get()
+        .then(playerDoc => {
+          const pdata = playerDoc.data();
+          const currentCount = pdata.reBuyCount || 0;
+
+          db.collection("tournaments").doc(currentTourName).collection("players").doc(playerId).update({
+            status: "Active",
+            reBuyCount: currentCount + 1
+          }).then(() => {
+            alert(`✅ Re-buy สำหรับผู้เล่น ${playerId} สำเร็จ (รอบที่ ${currentCount + 1})`);
+          });
+        });
+
+    } else if (gameType === "Bounty") {
+      const bounty = Math.floor(Number(data.buyIn || 0) / 4);
+
+      db.collection("tournaments").doc(currentTourName).collection("players").doc(playerId).get()
+        .then(playerDoc => {
+          const pdata = playerDoc.data();
+          const rebuyUsed = pdata.rebuyUsed || 0;
+
+          db.collection("tournaments").doc(currentTourName).collection("players").doc(playerId).update({
+            status: "ALIVE",
+            bounty: bounty,
+            rebuyUsed: rebuyUsed + 1
+          }).then(() => {
+            alert(`✅ Re-buy สำหรับผู้เล่น ${playerId} สำเร็จ (ครั้งที่ ${rebuyUsed + 1})`);
+          });
+        });
+    }
+  });
+}
+
+function handleAddon(playerId) {
+  if (!currentTourName) return;
+  if (!confirm(`ยืนยันการ Add-on ให้ผู้เล่น ${playerId} ใช่หรือไม่?`)) return;
+
+  const playerRef = db.collection("tournaments").doc(currentTourName).collection("players").doc(playerId);
+  db.runTransaction(async (tx) => {
+    const doc = await tx.get(playerRef);
+    if (!doc.exists) throw new Error("ไม่พบผู้เล่น");
+
+    const data = doc.data();
+    if (data.addonUsed) throw new Error("ผู้เล่นนี้ใช้ Add-on ไปแล้ว");
+
+    tx.update(playerRef, {
+      addonUsed: true,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }).then(() => {
+    alert(`✅ Add-on สำเร็จสำหรับ ${playerId}`);
+  }).catch(err => {
+    console.error("❌ Add-on error:", err);
+    alert("❌ ไม่สามารถทำ Add-on ได้ หรือผู้เล่นนี้เคยใช้ไปแล้ว");
+  });
+}
+function addPlayerBounty() {
+  const input = document.getElementById("newPlayerName");
+  const name = input.value.trim();
+  if (!name) {
+    alert("❗ กรุณากรอกชื่อผู้เล่น");
+    return;
+  }
+
+  const tourRef = db.collection("tournaments").doc(currentTourName);
+  const playerRef = tourRef.collection("players").doc(name);
+
+  playerRef.get().then(doc => {
+    if (doc.exists) {
+      alert("⚠️ มีผู้เล่นชื่อนี้แล้ว");
+      return;
+    }
+
+    // ดึงค่า buy-in จาก tournament document
+    tourRef.get().then(tourDoc => {
+      if (!tourDoc.exists) {
+        alert("❌ ไม่พบข้อมูลทัวร์");
+        return;
+      }
+
+      const buyIn = Number(tourDoc.data().buyIn || 0);
+      const bountyValue = Math.floor(buyIn / 2);
+
+      const playerData = {
+        status: "ALIVE",
+        rebuyUsed: 0,
+        addonUsed: false,
+        bounty: bountyValue,
+        earning: 0,
+        koCount: 0,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      playerRef.set(playerData).then(() => {
+        alert(`✅ เพิ่มผู้เล่น "${name}" สำเร็จ`);
+        input.value = "";
+      }).catch(err => {
+        console.error("❌ เพิ่มผู้เล่นล้มเหลว:", err);
+        alert("❌ เกิดข้อผิดพลาดในการเพิ่มผู้เล่น");
+      });
+    });
+  }).catch(err => {
+    console.error("❌ ตรวจสอบชื่อซ้ำล้มเหลว:", err);
+    alert("❌ ไม่สามารถตรวจสอบชื่อผู้เล่นได้");
+  });
+}
+
+
+
+function openKOPopup(koById) {
+  const popup = document.createElement("div");
+  popup.id = "ko-popup";
+  popup.style = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:20px;border:1px solid black;z-index:1000";
+
+  popup.innerHTML = `<h3>🔫 เลือกผู้เล่นที่ต้องการ KO</h3><div id="ko-targets"></div><br><button onclick="document.body.removeChild(document.getElementById('ko-popup'))">❌ ยกเลิก</button>`;
+
+  document.body.appendChild(popup);
+
+  // ดึงผู้เล่นที่ยัง ALIVE ยกเว้นตัวเอง
+  db.collection("tournaments").doc(currentTourName).collection("players")
+    .where("status", "==", "ALIVE")
+    .get().then(snapshot => {
+      const container = document.getElementById("ko-targets");
+      snapshot.forEach(doc => {
+        if (doc.id !== koById) {
+          const btn = document.createElement("button");
+          btn.innerText = doc.id;
+          btn.onclick = () => confirmKO(koById, doc.id);
+          container.appendChild(btn);
+        }
+      });
+    });
+}
+
+
+
+function closeKOPopup() {
+  const popup = document.getElementById("ko-popup");
+  if (popup) popup.remove();
+}
+function handleKO(attackerId) {
+  db.collection("tournaments").doc(currentTourName).collection("players")
+    .where("status", "==", "ALIVE")
+    .get()
+    .then(snapshot => {
+      let options = "";
+      snapshot.forEach(doc => {
+        if (doc.id !== attackerId) {
+          options += `<option value="${doc.id}">${doc.id}</option>`;
+        }
+      });
+
+      const html = `
+        <h3>เลือกผู้เล่นที่คุณต้องการ KO</h3>
+        <select id="koTarget">${options}</select>
+        <button onclick="confirmKO('${attackerId}')">ยืนยัน KO</button>
+      `;
+      showModal(html); // ← ต้องแน่ใจว่ามี id="koTarget" ก่อนจะยืนยัน
+    });
+}
+
+let currentKoTargetId = null;
+
+function handleKO(targetId) {
+  if (!currentTourName) return;
+
+  currentKoTargetId = targetId;
+
+  const select = document.getElementById("koSelect");
+  select.innerHTML = "";
+
+  db.collection("tournaments").doc(currentTourName).collection("players")
+    .get().then(snapshot => {
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (doc.id !== targetId && data.status === "ALIVE") {
+          const option = document.createElement("option");
+          option.value = doc.id;
+          option.innerText = doc.id;
+          select.appendChild(option);
+        }
+      });
+
+      if (select.options.length === 0) {
+        alert("❌ ไม่มีผู้เล่น ALIVE คนอื่นให้เลือก");
+        return;
+      }
+
+      document.getElementById("koModal").style.display = "flex";
+    });
+}
+
+function closeKoModal() {
+  document.getElementById("koModal").style.display = "none";
+  currentKoTargetId = null;
+}
+
+
+let currentKOInitiator = null;
+
+function handleKO(playerId) {
+  currentKOInitiator = playerId;
+
+  db.collection("tournaments").doc(currentTourName).collection("players")
+    .get()
+    .then(snapshot => {
+      const select = document.getElementById("koTargetSelect");
+      select.innerHTML = "";
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (doc.id !== playerId && data.status === "ALIVE") {
+          const option = document.createElement("option");
+          option.value = doc.id;
+          option.textContent = doc.id;
+          select.appendChild(option);
+        }
+      });
+
+      document.getElementById("koModal").style.display = "block";
+    });
+}
+
+function confirmKO() {
+  const targetId = document.getElementById("koTargetSelect").value;
+  if (!targetId || !currentKOInitiator) return;
+
+  const tourRef = db.collection("tournaments").doc(currentTourName);
+  const playersRef = tourRef.collection("players");
+  const logRef = tourRef.collection("logs");
+
+  Promise.all([
+    playersRef.doc(currentKOInitiator).get(),
+    playersRef.doc(targetId).get()
+  ]).then(([initiatorSnap, targetSnap]) => {
+    const initiator = initiatorSnap.data();
+    const target = targetSnap.data();
+
+    const bountyEarned = target.bounty || 0;
+    const newBounty = (initiator.bounty || 0) + Math.floor(bountyEarned / 2);
+    const newEarning = (initiator.earning || 0) + bountyEarned;
+    const newKOCount = (initiator.koCount || 0) + 1;
+
+    const batch = db.batch();
+
+    // อัปเดตผู้ที่ KO
+    batch.update(playersRef.doc(currentKOInitiator), {
+      bounty: newBounty,
+      earning: newEarning,
+      koCount: newKOCount
+    });
+
+    // อัปเดตผู้ถูก KO
+    batch.update(playersRef.doc(targetId), {
+      status: "DEAD",
+      bounty: 0
+    });
+
+    // log แบบแยกฟิลด์เพื่อใช้แสดงผลใน popup
+    batch.set(logRef.doc(Date.now().toString()), {
+      type: "KO",
+      playerA: currentKOInitiator,
+      playerB: targetId,
+      bounty: bountyEarned,
+      time: new Date()
+    });
+
+    return batch.commit().then(() => {
+      alert("✅ บันทึกการ KO สำเร็จ");
+      document.getElementById("koModal").style.display = "none";
+    });
+  });
+}
+
+function goToStructure() {
+  const user = firebase.auth().currentUser;
+  if (!user) {
+    alert("กรุณาเข้าสู่ระบบก่อนเข้าดูโครงสร้าง");
+    return;
+  }
+  if (!currentTourName) {
+    alert("กรุณาโหลดหรือสร้างทัวร์ก่อนเข้าโครงสร้าง");
+    return;
+  }
+
+  const tourName = encodeURIComponent(currentTourName);
+  window.location.href = `structure.html?tour=${tourName}`;
+}
+function openPrizepool() {
+  if (!currentTourName) {
+    alert("กรุณาโหลดหรือสร้างทัวร์ก่อน");
+    return;
+  }
+  const user = firebase.auth().currentUser;
+  if (!user) {
+    alert("กรุณาเข้าสู่ระบบก่อน");
+    return;
+  }
+  const uid = user.uid;
+  window.open(`prizepool.html?tour=${encodeURIComponent(currentTourName)}&uid=${uid}`, '_blank');
+}
+
+window.open(`display.html?tour=${encodeURIComponent(currentTourName)}`, '_blank');
+
+</script>
+
+</body>
+</html>

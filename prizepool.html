@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Prize Pool Info</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-init.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background: #f2f2f2;
+    }
+    .container {
+      display: flex;
+      gap: 30px;
+      max-width: 900px;
+      margin: auto;
+    }
+    .left-panel,
+    .right-panel {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      flex: 1;
+      min-width: 300px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .field {
+      margin: 12px 0;
+    }
+    .field strong {
+      display: inline-block;
+      width: 160px;
+    }
+    .right-panel h1 {
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+    #payout-form .field {
+      margin-bottom: 16px;
+    }
+    #payout-form label strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+    #payout-form input[type="number"] {
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 100%;
+      padding: 6px;
+      box-sizing: border-box;
+    }
+    #payout-table-container {
+      margin-top: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table th,
+    table td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: right;
+    }
+    table th {
+      background: #eee;
+    }
+    table td:first-child,
+    table th:first-child {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left-panel">
+      <h1>🏆 Prize Pool</h1>
+      <div id="prize-info"></div>
+
+      <div
+        id="tour-state"
+        style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px;"
+      >
+        <h2>📊 Tournament State</h2>
+        <p id="entry-summary">Entry: ...</p>
+        <p id="stack-summary">Total Stack: ...</p>
+      </div>
+    </div>
+
+    <div class="right-panel">
+      <h1>💰 PAY OUTS</h1>
+      <form id="payout-form" onsubmit="return false;">
+        <div class="field">
+          <label for="totalPrizepool"><strong>TOTAL PRIZE</strong></label><br />
+          <input
+            type="number"
+            id="totalPrizepool"
+            placeholder="จำนวนเงินทั้งหมด"
+            readonly
+          />
+        </div>
+        <div class="field">
+          <label for="bountyPool"><strong>BOUNTY POOL</strong></label><br />
+          <input
+            type="number"
+            id="bountyPool"
+            placeholder="จำนวนเงิน bounty pool"
+          />
+        </div>
+        <!-- ลบช่อง GUARANTEE ตามที่คุยแล้ว -->
+        <div class="field">
+          <label for="numWinners"><strong>จำนวนผู้ได้รางวัล</strong></label><br />
+          <input
+            type="number"
+            id="numWinners"
+            placeholder="จำนวนผู้ชนะ"
+            min="1"
+            step="1"
+          />
+          <div id="payout-warning" style="color:red; margin-top:8px; font-weight:bold;"></div>
+        </div>
+      </form>
+
+      <div id="payout-table-container"></div>
+    </div>
+  </div>
+
+  <script>
+    // ฟังก์ชันแจกเปอร์เซ็นต์รางวัลตามจำนวนผู้ได้รางวัล
+    function getDefaultPercents(n) {
+      const presets = {
+        1: [100],
+        2: [65, 35],
+        3: [50, 30, 20],
+        4: [45, 25, 18, 12],
+        5: [40, 23, 16, 12, 9],
+        6: [35, 22, 15, 11, 9, 8],
+        7: [33, 20, 14, 10, 8.5, 7.5, 7],
+        8: [30, 19, 13, 9.5, 8, 7.5, 6.5, 6.5],
+        9: [28, 18, 12.5, 9, 7.5, 7, 6.5, 6, 5.5],
+        10: [27, 17, 12, 9, 7.5, 6.5, 6, 5.5, 5, 4.5],
+      };
+      if (presets[n]) return presets[n];
+      const base = presets[10].slice();
+      while (base.length < n) base.push(1);
+      const sum = base.reduce((a, b) => a + b, 0);
+      return base.map((p) => +(p * 100 / sum).toFixed(2));
+    }
+
+    // สร้างตารางรางวัลตามจำนวนผู้ชนะ และ totalPrize
+    function updatePayoutTable(numWinners, totalPrize) {
+      const payoutContainer = document.getElementById("payout-table-container");
+      if (!payoutContainer) return;
+
+      const percents = getDefaultPercents(numWinners);
+
+      let html = `<table>
+          <thead>
+            <tr>
+              <th>อันดับ</th>
+              <th>เปอร์เซ็นต์ (%)</th>
+              <th>จำนวนเงิน (บาท)</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+      percents.forEach((percent, i) => {
+        const prize = (totalPrize * percent / 100).toFixed(2);
+        html += `<tr>
+  <td>${i + 1}</td>
+  <td style="text-align:right;">${percent}</td>
+  <td style="text-align:right;">
+    <input type="number" class="prize-input" value="${prize}" min="0" step="0.01" style="width:100px; text-align:right;" data-index="${i}" />
+  </td>
+</tr>`;
+      });
+      
+
+      html += "</tbody></table>";
+      payoutContainer.innerHTML = html;
+    }
+
+    // เช็คค่า numWinners ให้ไม่ต่ำกว่า 1
+    function sanitizeNumWinners(value) {
+      let num = parseInt(value);
+      if (isNaN(num) || num < 1) return 1;
+      return num;
+      savePrizePoolToFirestore(tourName, prizeList);
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const tourName = params.get("tour");
+    const urlUid = params.get("uid");
+
+    firebase.auth().onAuthStateChanged((user) => {
+  const container = document.getElementById("prize-info");
+  const entrySummary = document.getElementById("entry-summary");
+  const stackSummary = document.getElementById("stack-summary");
+  const totalPrizeInput = document.getElementById("totalPrizepool");
+  const numWinnersInput = document.getElementById("numWinners");
+  const bountyInput = document.getElementById("bountyPool");
+
+  if (!user) {
+    container.innerHTML = "<p style='color:red'>⚠️ กรุณาเข้าสู่ระบบก่อน</p>";
+    return;
+  }
+
+  if (user.uid !== urlUid) {
+    container.innerHTML = "<p style='color:red'>❌ คุณไม่มีสิทธิ์เข้าถึงทัวร์นี้</p>";
+    return;
+  }
+
+  if (!tourName) {
+    container.innerHTML = "<p style='color:red'>❌ ไม่พบชื่อทัวร์ใน URL</p>";
+    return;
+  }
+
+  const db = firebase.firestore();
+  const tourDocRef = db.collection("tournaments").doc(tourName);
+
+  // ตั้งค่าเริ่มต้นจำนวนผู้ได้รางวัล = 3
+  // โหลดจำนวนผู้ได้รางวัลจาก Firestore ถ้ามี
+  tourDocRef.onSnapshot((doc) => {
+    if (!doc.exists) {
+      container.innerHTML = "<p style='color:red'>❌ ไม่พบทัวร์: " + tourName + "</p>";
+      return;
+    }
+
+    const data = doc.data();
+    const storedNum = parseInt(data.numWinners);
+numWinnersInput.value = !isNaN(storedNum) && storedNum > 0 ? storedNum : 3;
+
+    // แสดงข้อมูลทัวร์
+    const fields = [
+      { label: "🏁 Tournament Name", value: data.name },
+      { label: "📅 Date", value: data.startDate },
+      { label: "⏰ Time", value: data.startTime },
+      { label: "🎮 Game Type", value: data.gameType },
+      { label: "💰 Guarantee", value: data.guarantee || 0 },
+      { label: "🎟️ Buy-in", value: data.buyIn },
+      { label: "♻️ Re-buy", value: data.reBuy },
+      { label: "➕ Allow Add-on", value: data.allowAddon },
+      { label: "💵 Add-on Cost", value: data.addonCost || "-"},
+      { label: "📦 Starting Stack", value: data.startingStack },
+      { label: "📦 Add-on Stack", value: data.addonStack || "-" },
+    ];
+
+    container.innerHTML = "";
+    fields.forEach((f) => {
+      const div = document.createElement("div");
+      div.className = "field";
+      div.innerHTML = `<strong>${f.label}:</strong> ${f.value}`;
+      container.appendChild(div);
+    });
+
+    const playersRef = tourDocRef.collection("players");
+
+    playersRef.onSnapshot((snapshot) => {
+      let entry = 0,
+        rebuy = 0,
+        addon = 0,
+        remaining = 0;
+
+      snapshot.forEach((doc) => {
+        const p = doc.data();
+        if (p.status === "Active" || p.status === "ALIVE") remaining++;
+        entry++;
+        if (p.reBuyCount) rebuy += p.reBuyCount;
+        if (p.rebuyUsed) rebuy += p.rebuyUsed;
+        if (p.addonUsed) addon++;
+      });
+
+      const startingStack = Number(data.startingStack || 0);
+      const addonStack = Number(data.addonStack || 0);
+      const totalStack = (entry + rebuy) * startingStack + addon * addonStack;
+      const avgStack = remaining > 0 ? Math.floor(totalStack / remaining) : 0;
+
+      const buyIn = Number(data.buyIn || 0);
+      const reBuy = Number(data.reBuy || 0);
+      const addonCost = Number(data.addonCost || 0);
+
+      // คำนวณ bounty pool เฉพาะ bounty type
+      if (data.gameType === "Bounty") {
+        const bountyPool = entry * (buyIn / 2) + rebuy * (reBuy / 2);
+        if (bountyInput) bountyInput.value = bountyPool.toFixed(2);
+      } else {
+        if (bountyInput) bountyInput.value = "";
+      }
+
+      let totalPrizepool = 0;
+      if (data.gameType === "Tour") {
+        totalPrizepool = entry * buyIn + rebuy * reBuy + addon * addonCost;
+      } else if (data.gameType === "Bounty") {
+        totalPrizepool =
+          entry * (buyIn / 2) + rebuy * (reBuy / 2) + addon * addonCost;
+      }
+
+      const guarantee = Number(data.guarantee || 0);
+      if (guarantee > totalPrizepool) {
+        totalPrizepool = guarantee;
+      }
+
+      entrySummary.innerText = `Entry: ${entry}, Re-entry: ${rebuy}, Add-on: ${addon}, Remaining: ${remaining}`;
+      stackSummary.innerText = `Total Stack: ${totalStack}, Average Stack: ${avgStack}`;
+
+      if (totalPrizeInput) totalPrizeInput.value = totalPrizepool.toFixed(2);
+
+      // อัปเดตตารางรางวัลเมื่อ totalPrize หรือ numWinners เปลี่ยน
+      const numWinners = sanitizeNumWinners(numWinnersInput.value);
+      if (numWinners > 0 && totalPrizepool > 0) {
+        updatePayoutTable(numWinners, totalPrizepool);
+      } else {
+        document.getElementById("payout-table-container").innerHTML = "";
+      }
+    });
+  });
+
+  // อัปเดต Firestore เมื่อผู้ใช้เปลี่ยนจำนวนผู้ได้รางวัล
+numWinnersInput.addEventListener("input", (e) => {
+  const num = sanitizeNumWinners(e.target.value);
+  if (num !== parseInt(e.target.value)) {
+    e.target.value = num;
+  }
+
+  const totalPrize = parseFloat(totalPrizeInput.value) || 0;
+  if (num > 0 && totalPrize > 0) {
+    updatePayoutTable(num, totalPrize);
+
+    // 🔁 เพิ่มการเซฟกลับ Firestore ทันทีเมื่อจำนวนอันดับเปลี่ยน
+    const percents = getDefaultPercents(num);
+    const prizeList = percents.map((percent, i) => ({
+      rank: i + 1,
+      amount: parseFloat((totalPrize * percent / 100).toFixed(2))
+    }));
+    savePrizePoolToFirestore(tourName, prizeList);
+  } else {
+    document.getElementById("payout-table-container").innerHTML = "";
+  }
+
+  // ✅ เซฟค่า numWinners ไปยัง Firestore
+  if (tourName) {
+    firebase.firestore().collection("tournaments").doc(tourName).update({
+      numWinners: num
+    });
+  }
+});
+});
+
+
+    function recalcAndCheck() {
+  const totalPrize = parseFloat(document.getElementById("totalPrizepool").value) || 0;
+  const inputs = document.querySelectorAll("#payout-table-container .prize-input");
+  let sum = 0;
+  inputs.forEach(input => {
+    sum += parseFloat(input.value) || 0;
+  });
+  const diff = +(sum - totalPrize).toFixed(2);
+  const warnDiv = document.getElementById("payout-warning");
+
+  if (diff === 0) {
+    warnDiv.textContent = "";
+  } else if (diff > 0) {
+    warnDiv.textContent = `❌ เกิน ${diff} บาท`;
+  } else {
+    warnDiv.textContent = `❌ ขาด ${Math.abs(diff)} บาท`;
+  }
+}
+
+// Event delegation for inputs inside payout table
+document.getElementById("payout-table-container").addEventListener("input", (e) => {
+  if (e.target.classList.contains("prize-input")) {
+    recalcAndCheck();
+  }
+});
+async function savePrizePoolToFirestore(tourName, prizeList) {
+  const db = firebase.firestore();
+  const poolRef = db.collection(`tournaments/${tourName}/prizepool`);
+
+  // 🔥 ลบข้อมูลเก่าทั้งหมดก่อนเขียนใหม่
+  const existing = await poolRef.get();
+  const batchDelete = db.batch();
+  existing.forEach(doc => batchDelete.delete(doc.ref));
+  await batchDelete.commit();
+
+  // ✏️ เขียนข้อมูลใหม่ทั้งหมด
+  const batchWrite = db.batch();
+  prizeList.forEach(item => {
+    const docRef = poolRef.doc(item.rank.toString());
+    batchWrite.set(docRef, {
+      rank: item.rank,
+      amount: item.amount
+    });
+  });
+
+  await batchWrite.commit();
+  console.log("✅ PrizePool overwritten successfully");
+}
+// โหลดข้อมูล prizepool จาก Firestore แบบเรียลไทม์
+firebase.auth().onAuthStateChanged((user) => {
+      const container = document.getElementById("prize-info");
+      const entrySummary = document.getElementById("entry-summary");
+      const stackSummary = document.getElementById("stack-summary");
+      const totalPrizeInput = document.getElementById("totalPrizepool");
+      const numWinnersInput = document.getElementById("numWinners");
+      const bountyInput = document.getElementById("bountyPool");
+
+      if (!user) {
+        container.innerHTML = "<p style='color:red'>⚠️ กรุณาเข้าสู่ระบบก่อน</p>";
+        return;
+      }
+
+      if (user.uid !== urlUid) {
+        container.innerHTML = "<p style='color:red'>❌ คุณไม่มีสิทธิ์เข้าถึงทัวร์นี้</p>";
+        return;
+      }
+
+      if (!tourName) {
+        container.innerHTML = "<p style='color:red'>❌ ไม่พบชื่อทัวร์ใน URL</p>";
+        return;
+      }
+
+      const db = firebase.firestore();
+      const tourDocRef = db.collection("tournaments").doc(tourName);
+
+      tourDocRef.onSnapshot((doc) => {
+        if (!doc.exists) {
+          container.innerHTML = "<p style='color:red'>❌ ไม่พบทัวร์: " + tourName + "</p>";
+          return;
+        }
+
+        const data = doc.data();
+
+        // ✅ ย้ายการกำหนดค่า numWinnersInput มาที่นี่หลังจากได้ data แล้ว
+        const storedNum = parseInt(data.numWinners);
+        numWinnersInput.value = !isNaN(storedNum) && storedNum > 0 ? storedNum : 3;
+
+        // ... (ส่วนอื่นยังคงเหมือนเดิม)
+      });
+    });
+
+// อัปเดต Firestore ทันทีเมื่อแก้ไข input
+
+document.getElementById("payout-table-container").addEventListener("input", (e) => {
+  if (e.target.classList.contains("prize-input")) {
+    recalcAndCheck();
+
+    const inputs = document.querySelectorAll(".prize-input");
+    const prizeList = [];
+    inputs.forEach((input, idx) => {
+      const amount = parseFloat(input.value);
+      if (!isNaN(amount)) {
+        prizeList.push({ rank: idx + 1, amount });
+      }
+    });
+
+    if (prizeList.length > 0 && tourName) {
+      savePrizePoolToFirestore(tourName, prizeList);
+    }
+  }
+});
+  </script>
+</body>
+</html>
