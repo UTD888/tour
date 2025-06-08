@@ -666,33 +666,38 @@ function countRealLevelNumber(structure, currentIndex) {
 
  
   function renderLiveBlinds() {
-      if (!structure.length) return;
+  if (!structure.length) return;
 
-      const currentLevelDisplay = document.getElementById("current-level");
-      const blindsDiv = document.getElementById("blinds");
-      const nextDiv = document.getElementById("next-level");
+  const currentLevelDisplay = document.getElementById("current-level");
+  const blindsDiv = document.getElementById("blinds");
+  const nextDiv = document.getElementById("next-level");
 
-      const current = structure[levelIndex];
-      const next = getNextLevelEntry(structure, levelIndex);
-      const realLevelNumber = countRealLevelNumber(structure, levelIndex);
+  const current = structure[levelIndex];
+  const nextLV = structure[levelIndex + 1];
+  const realLevelNumber = countRealLevelNumber(structure, levelIndex);
 
-      if (current?.type === 'break' || current?.isBreak) {
-        currentLevelDisplay.textContent = `🛑 BREAK`;
-        blindsDiv.textContent = `${current.note || 'Break Time'}`;
-      } else {
-        currentLevelDisplay.textContent = `LEVEL ${realLevelNumber}`;
-        blindsDiv.textContent = `${current.sb || '-'} / ${current.bb || '-'} / ${current.ante || '-'}`;
-      }
+  // แสดง CURRENT
+  if (current?.type === 'break' || current?.isBreak) {
+    currentLevelDisplay.textContent = `🛑 BREAK`;
+    blindsDiv.textContent = `${current.note || 'Break Time'}`;
+  } else {
+    currentLevelDisplay.textContent = `LEVEL ${realLevelNumber}`;
+    blindsDiv.textContent = `${current.sb || '-'} / ${current.bb || '-'} / ${current.ante || '-'}`;
+  }
 
-      if (!next) {
-        nextDiv.textContent = `Final Level`;
-      } else if (next?.type === 'break' || next?.isBreak) {
-        nextDiv.textContent = `Next: 🛑 BREAK (${next.duration || '-'} min)`;
-      } else {
-        nextDiv.textContent = `Next Lv : ${next.sb || '-'} / ${next.bb || '-'} / ${next.ante || '-'}`;
-        nextDiv.style.color = "#ffff"; // สีปกติ
-      }
-    }
+  // แสดง NEXT ตามลำดับจริง (ไม่ข้าม break)
+  if (!nextLV) {
+    nextDiv.textContent = `Final Level`;
+    nextDiv.style.color = "#ccc";
+  } else if (nextLV?.isBreak || nextLV?.type === 'break') {
+    nextDiv.textContent = `Next: 🛑 BREAK (${nextLV.duration || '-'} min)`;
+    nextDiv.style.color = "#ff4d4d";
+  } else {
+    nextDiv.textContent = `Next Lv : ${nextLV.sb || '-'} / ${nextLV.bb || '-'} / ${nextLV.ante || '-'}`;
+    nextDiv.style.color = "#ffffff";
+  }
+}
+
 
 let structure = [];
 let levelIndex = 0;
