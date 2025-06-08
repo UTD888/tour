@@ -365,27 +365,33 @@ async function saveToFirestore() {
   // เพิ่มข้อมูลใหม่
   const batch = firebase.firestore().batch();
   rows.forEach((row, index) => {
-    const noteInput = row.querySelector(".note-input");
-    let rowData = {};
-    if (noteInput) {
-      rowData = {
-        isBreak: true,
-        note: noteInput.value || '',
-        duration: row.querySelector("input[placeholder='duration']")?.value || '',
-        time: row.querySelector("input[placeholder='time']")?.value || ''
-      };
-    } else {
-      rowData = {
-        sb: row.querySelector("input[placeholder='sb']")?.value || '',
-        bb: row.querySelector("input[placeholder='bb']")?.value || '',
-        ante: row.querySelector("input[placeholder='ante']")?.value || '',
-        duration: row.querySelector("input[placeholder='duration']")?.value || '',
-        time: row.querySelector("input[placeholder='time']")?.value || ''
-      };
-    }
-    const docRef = structureRef.doc(String(index + 1));
-    batch.set(docRef, rowData);
-  });
+  const noteInput = row.querySelector(".note-input");
+  let rowData = {};
+
+  if (noteInput) {
+    rowData = {
+      isBreak: true,
+      note: noteInput.value || '',
+      duration: row.querySelector("input[placeholder='duration']")?.value || '',
+      time: row.querySelector("input[placeholder='time']")?.value || ''
+    };
+  } else {
+    rowData = {
+      sb: row.querySelector("input[placeholder='sb']")?.value || '',
+      bb: row.querySelector("input[placeholder='bb']")?.value || '',
+      ante: row.querySelector("input[placeholder='ante']")?.value || '',
+      duration: row.querySelector("input[placeholder='duration']")?.value || '',
+      time: row.querySelector("input[placeholder='time']")?.value || ''
+    };
+  }
+
+  rowData.index = index; // ✅ เพิ่มบรรทัดนี้
+
+  const docRef = structureRef.doc(String(index + 1));
+  batch.set(docRef, rowData);
+});
+
+
   await batch.commit();
 
   // ล้าง localStorage และโหลดใหม่
@@ -394,7 +400,7 @@ async function saveToFirestore() {
   loadStructureFromFirestore();
 }
 function loadStructureFromFirestore() {
-  structureRef.orderBy(firebase.firestore.FieldPath.documentId())
+  structureRef.orderBy("index")
     .onSnapshot(snapshot => {
       document.getElementById("structure-body").innerHTML = "";
 
