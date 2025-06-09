@@ -292,6 +292,7 @@ border-right: 1px solid grey;
   <script src="firebase-init.js"></script>
   
   <script>
+    let lateRegLimit = 0;
     let lastNotifiedLevel = null; // กันไม่ให้ ding ซ้ำเลเวลเดิม
 
     const params = new URLSearchParams(window.location.search);
@@ -310,6 +311,7 @@ border-right: 1px solid grey;
     document.body.innerHTML = "<h2 style='color:red;text-align:center;'>❌ กรุณาเข้าสู่ระบบก่อนเข้าชมข้อมูล</h2>";
     return;
   }
+  
   levelIndex = 0;
   loadDisplayRealtime();
   loadStructureFromCollection();  // ✅ ให้ใช้ฟังก์ชันนี้เท่านั้นสำหรับ structure
@@ -409,27 +411,48 @@ stateRef.onSnapshot((docSnap) => {
     const state = docSnap.data();
     levelIndex = state.levelIndex || 0;
     isRunning = state.isRunning || false;
+    const currentLevel = structure[levelIndex];
+    const duration = (currentLevel?.duration || 0) * 60;
+
+    // หยุด interval เดิม
+    if (window.timerInterval) clearInterval(window.timerInterval);
 
     if (isRunning && state.startTime) {
-      const now = Date.now();
-      const elapsed = Math.floor((now - state.startTime) / 1000); // วินาทีที่ผ่านไป
-      const duration = (structure[levelIndex]?.duration || 0) * 60;
-      secondsLeft = Math.max(0, duration - elapsed);
+      window.timerInterval = setInterval(() => {
+        const now = Date.now();
+        const elapsed = Math.floor((now - state.startTime) / 1000);
+        secondsLeft = Math.max(0, duration - elapsed);
+
+        updateCountdownUI();
+        updateNextBreakFromCountdown();
+        updateLateRegFromCountdown();
+        updateElapsedTime();
+
+        // ข้ามเลเวลเมื่อหมดเวลา และป้องกันการข้ามซ้ำ
+        if (secondsLeft === 0 && !window.levelJumped) {
+          window.levelJumped = true;
+          setTimeout(() => {
+            goToNextLevel();
+            window.levelJumped = false;
+          }, 1000);
+        }
+
+      }, 1000);
     } else {
-      secondsLeft = state.secondsLeft ?? (structure[levelIndex]?.duration || 0) * 60;
+      // เมื่อหยุด → ใช้ secondsLeft จาก Firebase
+      secondsLeft = state.secondsLeft ?? duration;
+      updateCountdownUI();
+      updateNextBreakFromCountdown();
+      updateLateRegFromCountdown();
+      updateElapsedTime();
     }
 
     document.getElementById("btnPlayPause").src = isRunning ? "pause.png" : "play.png";
-
     renderStructure(structure);
     renderLiveBlinds();
-    updateCountdownUI();
     updateTournamentInfo(state);
-    
   }
 });
-
-
 
 
 }
@@ -481,36 +504,29 @@ function handleTourType(type) {
 
 
 function loadStructureFromCollection() {
-  const structureRef = firebase.firestore().collection(`tournaments/${tourName}/structure`);
-
-  structureRef.get().then(snapshot => {
-    const loadedStructure = [];
-    snapshot.forEach(doc => {
-      const levelData = doc.data();
-      levelData.index = Number(levelData.index ?? 0); // ✅ แปลง index เป็นตัวเลข
-      if (levelData.isBreak === true) levelData.type = 'break'; // ✅ ตรวจจับ break
-      loadedStructure.push({
-        ...levelData,
-        level: doc.id
+  return firebase.firestore()
+    .collection("tournaments").doc(tourName)
+    .collection("structure")
+    .orderBy("index")
+    .get()
+    .then((querySnapshot) => {
+      structure = [];
+      querySnapshot.forEach((doc) => {
+        structure.push(doc.data());
       });
+
+      // หากต้องการตั้งค่า levelIndex จาก state ที่โหลดมาก่อนหน้า ให้ใส่ตรงนี้
+      levelIndex = 0;
+
+      renderStructure(structure);
+      renderLiveBlinds();
+      updateCountdownUI();
+    })
+    .catch((error) => {
+      console.error("Error loading structure:", error);
     });
-
-    // ✅ เรียงตาม index ก่อน push เข้า structure
-    loadedStructure.sort((a, b) => a.index - b.index);
-    structure.length = 0;
-    structure.push(...loadedStructure);
-
-    // ✅ ตั้งค่าเวลาและเรนเดอร์
-    const currentLevel = loadedStructure[levelIndex];
-    const durationMinutes = Number(currentLevel?.duration || 0);
-    secondsLeft = durationMinutes * 60;
-
-    renderLiveBlinds();
-    updateCountdownUI();
-    calculateLateRegLimit();
-    updateLateRegFromCountdown();
-  });
 }
+
 
 
 
@@ -754,51 +770,25 @@ function renderStructure(structure = []) {
 let isRunning = false;
 let timerInterval = null;
 
-function startTimer() {
-  if (timerInterval) return;
-  timerInterval = setInterval(() => {
-    if (!isRunning) return;
-
-    // 🔊 เตือนเมื่อเหลือ 1 นาที
-    if (secondsLeft === 60) {
-      document.getElementById("dingSound").play().catch(e => {});
-    }
-
-    // ⏱️ เตือน tick เมื่อเหลือ 10 วิสุดท้าย
-    if (secondsLeft <= 10 && secondsLeft > 0) {
-      document.getElementById("tickSound").play().catch(e => {});
-    }
-
-    if (secondsLeft > 0) {
-      secondsLeft--;
-      renderLiveBlinds();
-      updateCountdownUI();
-      updateNextBreakFromCountdown();
-      updateElapsedTime();
-      updateLateRegFromCountdown();
-      saveClockState();
-    } else {
-      // 🔔 เมื่อขึ้นเลเวลใหม่
-      document.getElementById("dingSound").play().catch(e => {});
-      levelIndex++;
-      if (levelIndex < structure.length) {
-        secondsLeft = (structure[levelIndex].duration || 0) * 60;
-        renderLiveBlinds();
-        updateCountdownUI();
-        saveClockState();
-      }
-    }
-  }, 1000);
-}
-
-
-
-
 togglePlayPause = function () {
+  const now = Date.now();
+  const duration = (structure[levelIndex]?.duration || 0) * 60;
+
   isRunning = !isRunning;
+
+  if (isRunning) {
+    // ▶ Resume → คำนวณ startTime จากเวลาที่เหลือ
+    const calculatedStartTime = now - (duration - secondsLeft) * 1000;
+    saveClockState({ startTime: calculatedStartTime });
+  } else {
+    // ⏸ Pause → เก็บเวลาที่เหลือ
+    saveClockState({ secondsLeft });
+  }
+
   document.getElementById("btnPlayPause").src = isRunning ? "pause.png" : "play.png";
-  saveClockState();
 };
+
+
 
 function fastForward() {
   if (levelIndex + 1 < structure.length) {
@@ -830,18 +820,24 @@ function resetClock() {
   saveClockState();
 }
 
-function saveClockState() {
+function saveClockState(overrides = {}) {
   const now = Date.now();
   const stateData = {
     levelIndex,
     isRunning,
-    updatedAt: now
+    updatedAt: now,
+    ...overrides
   };
 
-  if (isRunning) {
-    stateData.startTime = now - (structure[levelIndex].duration * 60 - secondsLeft) * 1000;
-  } else {
+  if (isRunning && !stateData.startTime) {
+    const duration = (structure[levelIndex]?.duration || 0) * 60;
+    stateData.startTime = now - (duration - secondsLeft) * 1000;
+    delete stateData.secondsLeft;
+  }
+
+  if (!isRunning && typeof stateData.secondsLeft !== 'number') {
     stateData.secondsLeft = secondsLeft;
+    delete stateData.startTime;
   }
 
   firebase.firestore()
@@ -853,13 +849,15 @@ function saveClockState() {
 
 
 
+
+
 function updateTournamentInfo(state) {
   // สามารถขยายเพิ่มเติมได้ตามต้องการ
   console.log("🧠 updateTournamentInfo:", state);
 }
 
 // bind ปุ่ม
-startTimer();
+
 document.getElementById("btnPlayPause").onclick = togglePlayPause;
 document.getElementById("btnFF").onclick = fastForward;
 document.getElementById("btnFD").onclick = fastBackward;
@@ -881,7 +879,6 @@ function updateElapsedTime() {
   document.getElementById("elapsed-time").textContent = `Elapsed Time : ${formatted}`;
 }
 
-let lateRegLimit = 0;
 
 function calculateLateRegLimit() {
   let total = 0;
@@ -1096,6 +1093,21 @@ function showKONotification(playerA, playerB, bounty) {
   }, 10000);
 }
 
+function startRealtimeCountdownSync(state) {
+  if (window.liveCountdownInterval) clearInterval(window.liveCountdownInterval);
+
+  window.liveCountdownInterval = setInterval(() => {
+    const now = Date.now();
+    const elapsed = state.startTime ? Math.floor((now - state.startTime) / 1000) : 0;
+    const duration = (structure[levelIndex]?.duration || 0) * 60;
+    secondsLeft = Math.max(0, duration - elapsed);
+    
+    updateCountdownUI();
+    updateNextBreakFromCountdown();
+    updateLateRegFromCountdown();
+    updateElapsedTime();
+  }, 1000);
+}
 
 
 
