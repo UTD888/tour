@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Final Display</title>
- 
+ <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville&display=swap" rel="stylesheet">
+
 
   <style>
 #lateReg-row {
@@ -62,7 +63,7 @@
     font-size: 3em;
     text-align: center;
   }
-    body { background: #111; color: #fff; font-family: sans-serif; margin: 0; padding: 20px; }
+    body { background: #111; color: #fff; font-family: 'Libre Baskerville', serif; margin: 0; padding: 20px;}
     h1 { text-align: center; color: gold; margin-bottom: 10px; }
     h2 { text-align: center; color: #ccc; margin-top: 0; }
     table { width: 95%; margin: 20px auto; border-collapse: collapse; font-size: 16px; }
@@ -77,26 +78,26 @@
       font-family: 'Arial', sans-serif;
     }
     #current-level {
-      font-size: 50px;
+      font-size: 3em;
       margin-bottom: 10px;
       margin-top: -30px;
             
     }
     #blinds {
-      font-size: 100px;
+      font-size: 5.4em;
       font-weight: bold;
       
     }
     #countdown {
-      font-size: 250px;
+      font-size: 17em;
       font-weight: bold;
       color: gold;
-      margin-top: -30px;
+      margin-top: -10px;
       width: 100%;
       
     }
     #next-level {
-      font-size: 80px;
+      font-size: 2.6em;
       color: #aaa;
       width: 100%;
     }
@@ -237,7 +238,7 @@ border-right: 1px solid grey;
   <img id="btnFF" src="ff.png" width="20" style="cursor:pointer; margin-right:10px;">  
   <img id="btnReset" src="reset.png" width="20" style="cursor:pointer;">  
   </div>    
-    <div id="next-level">Next Lv. : SB 200 / BB 400 / ANTE 400</div>
+    <div id="next-level">Next : SB 200 / BB 400 / ANTE 400</div>
     </div>
     <div id="ko-display" style="font-size: 14px; max-height: 200px; overflow-y: auto;"></div>
   </div>
@@ -398,17 +399,10 @@ border-right: 1px solid grey;
 // ✅ หาข้อมูล level ถัดไป (ที่ไม่ใช่ break)
 function getNextLevelEntry(structure, fromIndex) {
   for (let i = fromIndex + 1; i < structure.length; i++) {
-    if (!structure[i].type || structure[i].type !== 'break') {
-      return structure[i];
-    }
+    return structure[i]; // ✅ คืนทันทีแม้เป็น break
   }
   return null;
 }
-
-
-
-
-  let alreadyInitialized = false;
 
 stateRef.onSnapshot((docSnap) => {
   if (docSnap.exists && structure.length) {
@@ -427,10 +421,11 @@ stateRef.onSnapshot((docSnap) => {
 
     document.getElementById("btnPlayPause").src = isRunning ? "pause.png" : "play.png";
 
+    renderStructure(structure);
     renderLiveBlinds();
     updateCountdownUI();
     updateTournamentInfo(state);
-    renderStructure(structure);
+    
   }
 });
 
@@ -488,31 +483,35 @@ function handleTourType(type) {
 function loadStructureFromCollection() {
   const structureRef = firebase.firestore().collection(`tournaments/${tourName}/structure`);
 
-  structureRef.orderBy(firebase.firestore.FieldPath.documentId()).get().then(snapshot => {
+  structureRef.get().then(snapshot => {
     const loadedStructure = [];
     snapshot.forEach(doc => {
       const levelData = doc.data();
+      levelData.index = Number(levelData.index ?? 0); // ✅ แปลง index เป็นตัวเลข
+      if (levelData.isBreak === true) levelData.type = 'break'; // ✅ ตรวจจับ break
       loadedStructure.push({
         ...levelData,
-        level: doc.id  // เก็บหมายเลขเลเวลด้วย
+        level: doc.id
       });
     });
 
-    // ✅ เก็บเข้า global structure
+    // ✅ เรียงตาม index ก่อน push เข้า structure
+    loadedStructure.sort((a, b) => a.index - b.index);
     structure.length = 0;
     structure.push(...loadedStructure);
 
-    // ✅ ตั้งค่า secondsLeft ตาม duration ของเลเวลปัจจุบัน
+    // ✅ ตั้งค่าเวลาและเรนเดอร์
     const currentLevel = loadedStructure[levelIndex];
     const durationMinutes = Number(currentLevel?.duration || 0);
     secondsLeft = durationMinutes * 60;
-    // ✅ อัปเดต Blind / Countdown / Next Level ด้วย structure ที่ได้
+
     renderLiveBlinds();
-updateCountdownUI();
-calculateLateRegLimit();
-updateLateRegFromCountdown();
+    updateCountdownUI();
+    calculateLateRegLimit();
+    updateLateRegFromCountdown();
   });
 }
+
 
 
 
@@ -673,30 +672,28 @@ function countRealLevelNumber(structure, currentIndex) {
   const nextDiv = document.getElementById("next-level");
 
   const current = structure[levelIndex];
-  const nextLV = structure[levelIndex + 1];
+  const next = structure[levelIndex + 1];
   const realLevelNumber = countRealLevelNumber(structure, levelIndex);
 
-  // แสดง CURRENT
-  if (current?.type === 'break' || current?.isBreak) {
+  if (current?.isBreak || current?.type === 'break') {
     currentLevelDisplay.textContent = `🛑 BREAK`;
-    blindsDiv.textContent = `${current.note || 'Break Time'}`;
+    blindsDiv.innerHTML = `<span style="color:#ff9999;">${current.note || 'Break Time'}</span> (${current.duration || '-'} min)`;
   } else {
     currentLevelDisplay.textContent = `LEVEL ${realLevelNumber}`;
     blindsDiv.textContent = `${current.sb || '-'} / ${current.bb || '-'} / ${current.ante || '-'}`;
   }
 
-  // แสดง NEXT ตามลำดับจริง (ไม่ข้าม break)
-  if (!nextLV) {
+  if (!next) {
     nextDiv.textContent = `Final Level`;
-    nextDiv.style.color = "#ccc";
-  } else if (nextLV?.isBreak || nextLV?.type === 'break') {
-    nextDiv.textContent = `Next: 🛑 BREAK (${nextLV.duration || '-'} min)`;
-    nextDiv.style.color = "#ff4d4d";
+  } else if (next?.isBreak || next?.type === 'break') {
+    nextDiv.innerHTML = `Next : <span style="color:#ff9999;">${next.note || 'Break'}</span> (${next.duration || '-'} min)`;
   } else {
-    nextDiv.textContent = `Next Lv : ${nextLV.sb || '-'} / ${nextLV.bb || '-'} / ${nextLV.ante || '-'}`;
-    nextDiv.style.color = "#ffffff";
+    nextDiv.textContent = `Next Lv : ${next.sb || '-'} / ${next.bb || '-'} / ${next.ante || '-'}`;
+    nextDiv.style.color = "#fff";
   }
 }
+
+
 
 
 let structure = [];
@@ -714,10 +711,10 @@ function updateCountdownUI() {
 }
 
 const container = document.getElementById("structure-display");
+
 function renderStructure(structure = []) {
   container.innerHTML = "";
   let levelCounter = 0;
-  let realLevel = 0;
 
   structure.forEach((level, index) => {
     const isBreak = level.type === 'break' || level.isBreak;
@@ -725,28 +722,30 @@ function renderStructure(structure = []) {
     item.className = "level-item";
     item.style.padding = "5px";
 
-    // ✅ นับเฉพาะ level ที่ไม่ใช่ break
     if (!isBreak) levelCounter++;
 
-    // ✅ ไฮไลต์เฉพาะ level ปัจจุบัน
+    // ✅ ไฮไลต์ปัจจุบัน
     if (index === levelIndex) {
       item.style.backgroundColor = "#555";
       item.style.color = "gold";
       item.style.fontWeight = "bold";
     }
 
-    // ✅ ถ้าเป็นเลเวลที่ผ่านไปแล้ว ให้ลดความชัดเจน
+    // ✅ ซ่อนไปแล้ว
     if (index < levelIndex) {
-  item.style.display = "none";  // ซ่อนไปเลย
-}
+      item.style.display = "none";
+    }
 
+    // ✅ BREAK note และ LEVEL แยกแสดง
     item.innerHTML = isBreak
-      ? `<strong>🛑 BREAK (${level.duration || '-'} min)</strong><br>${level.note || ''}`
+      ? `<strong><img src="break.png" width="60px"> BREAK (${level.duration || '-'} min)</strong><br><span style="color:#ff9999;">${level.note || ''}</span>`
       : `Lv. ${levelCounter} : ${level.sb || '-'} | ${level.bb || '-'} | ${level.ante || '-'}`;
 
     container.appendChild(item);
   });
 }
+
+
 
 
 
@@ -997,18 +996,32 @@ updateNextBreakFromCountdown();
 updateCountdownUI();
 updateLateRegFromCountdown();
 updateNextBreakFromCountdown();
+
 function loadStructureRealtime(tourName) {
-  const structureRef = db.doc(`tournaments/${tourName}/display/structure`);
-  structureRef.onSnapshot((doc) => {
-    if (doc.exists) {
-      structure = doc.data().structure || [];
-      calculateLateRegLimit();
-      updateLateRegFromCountdown();
-      updateNextBreakFromCountdown();
-      renderStructureDisplay?.(); // หากไม่มีฟังก์ชันนี้อยู่ ก็ไม่มีผล
-    }
+  const structureRef = firebase.firestore().collection(`tournaments/${tourName}/structure`);
+
+  structureRef.orderBy("index").onSnapshot(snapshot => {
+    const all = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.isBreak === true) data.type = 'break';
+      all.push({ ...data, id: doc.id });
+    });
+
+    structure = all;
+
+    // เรียกทุกการแสดงผลที่จำเป็น
+    calculateLateRegLimit();
+    updateLateRegFromCountdown();
+    updateNextBreakFromCountdown();
+    renderStructure(structure);
+    renderLiveBlinds();
+    updateCountdownUI();
   });
 }
+
+
+
 function loadKOlogRealtime() {
   const koRef = firebase.firestore().collection(`tournaments/${tourName}/KOlog`);
   const display = document.getElementById("ko-display");
