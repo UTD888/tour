@@ -175,6 +175,16 @@ border-right: 1px solid grey;
 #structure-display {
   font-size: 25px;
 }
+.fade-left {
+  opacity: 0;
+  transform: translateX(20px);
+  transition: all 1.2s ease;
+}
+
+.fade-left.show {
+  opacity: 1;
+  transform: translateX(0);
+}
 
 
   </style>
@@ -630,13 +640,13 @@ function loadPrizePool() {
     const pageData = prizeData.slice(currentIndex, currentIndex + rowsPerPage);
 
     pageData.forEach(item => {
-      html += `
-        <tr class="fade-left">
-          <td style="padding: 8px; text-align: center;">${item.rank}</td>
-          <td style="padding: 8px; text-align: center;">${item.amount?.toLocaleString() || '-'}</td>
-        </tr>
-      `;
-    });
+  html += `
+    <tr class="fade-left show">
+      <td style="padding: 8px; text-align: center;">${item.rank}</td>
+      <td style="padding: 8px; text-align: center;">${item.amount?.toLocaleString() || '-'}</td>
+    </tr>
+  `;
+});
 
     html += "</tbody></table>";
     display.innerHTML = html;
