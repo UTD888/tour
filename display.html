@@ -614,23 +614,13 @@ function loadPrizePool() {
   const rowsPerPage = 5;
 
   poolRef.orderBy("rank").onSnapshot(snapshot => {
-  prizeData = [];
-  snapshot.forEach(doc => {
-    const { rank, amount } = doc.data();
-    prizeData.push({ rank, amount });
-  });
+    prizeData = [];
+    snapshot.forEach(doc => {
+      const { rank, amount } = doc.data();
+      prizeData.push({ rank, amount });
+    });
 
-  renderPrizePage(); // 👈 เรียกครั้งแรกทันที
-
-  // ✅ เพิ่มเงื่อนไข: ถ้าเกิน 5 ค่อยตั้ง interval หมุนหน้า
-  if (prizeData.length > rowsPerPage) {
-    clearInterval(window.prizeInterval);
-    window.prizeInterval = setInterval(renderPrizePage, 10000);
-  } else {
-    clearInterval(window.prizeInterval);
-  }
-});
-  renderPrizePage();
+    renderPrizePage();
     setInterval(renderPrizePage, 10000); // เปลี่ยนหน้าใหม่ทุก 10 วินาที
   });
 
@@ -657,16 +647,6 @@ function loadPrizePool() {
         </tr>
       `;
     });
-
-  html += "</tbody></table>";
-  display.innerHTML = html;
-
-  if (isPaging) {
-    currentIndex += rowsPerPage;
-    if (currentIndex >= prizeData.length) currentIndex = 0;
-  }
-}
-
 
     html += "</tbody></table>";
     display.innerHTML = html;
