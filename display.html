@@ -630,31 +630,33 @@ function loadPrizePool() {
     clearInterval(window.prizeInterval);
   }
 });
-  function renderPrizePage() {
-  const isPaging = prizeData.length > rowsPerPage;
-  const pageData = isPaging
-    ? prizeData.slice(currentIndex, currentIndex + rowsPerPage)
-    : prizeData;
-
-  let html = `
-    <table style="width: 100%; font-size: 16px; border-collapse: collapse;">
-      <thead>
-        <tr>
-          <th style="padding: 8px; border-bottom: 1px solid #555;">Rank</th>
-          <th style="padding: 8px; border-bottom: 1px solid #555;">Prize</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-  pageData.forEach(item => {
-    html += `
-      <tr>
-        <td style="padding: 8px; text-align: center;">${item.rank}</td>
-        <td style="padding: 8px; text-align: center;">${item.amount?.toLocaleString() || '-'}</td>
-      </tr>
-    `;
+  renderPrizePage();
+    setInterval(renderPrizePage, 10000); // เปลี่ยนหน้าใหม่ทุก 10 วินาที
   });
+
+  function renderPrizePage() {
+    let html = `
+      
+      <table style="width: 100%; font-size: 16px; border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th style="padding: 8px; border-bottom: 1px solid #555;">Rank</th>
+            <th style="padding: 8px; border-bottom: 1px solid #555;">Prize</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    const pageData = prizeData.slice(currentIndex, currentIndex + rowsPerPage);
+
+    pageData.forEach(item => {
+      html += `
+        <tr class="fade-left">
+          <td style="padding: 8px; text-align: center;">${item.rank}</td>
+          <td style="padding: 8px; text-align: center;">${item.amount?.toLocaleString() || '-'}</td>
+        </tr>
+      `;
+    });
 
   html += "</tbody></table>";
   display.innerHTML = html;
