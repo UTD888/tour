@@ -614,39 +614,57 @@ function loadPrizePool() {
   const rowsPerPage = 5;
 
   poolRef.orderBy("rank").onSnapshot(snapshot => {
-    prizeData = [];
-    snapshot.forEach(doc => {
-      const { rank, amount } = doc.data();
-      prizeData.push({ rank, amount });
-    });
-
-    renderPrizePage();
-    setInterval(renderPrizePage, 10000); // เปลี่ยนหน้าใหม่ทุก 10 วินาที
+  prizeData = [];
+  snapshot.forEach(doc => {
+    const { rank, amount } = doc.data();
+    prizeData.push({ rank, amount });
   });
 
-  function renderPrizePage() {
-    let html = `
-      
-      <table style="width: 100%; font-size: 16px; border-collapse: collapse;">
-        <thead>
-          <tr>
-            <th style="padding: 8px; border-bottom: 1px solid #555;">Rank</th>
-            <th style="padding: 8px; border-bottom: 1px solid #555;">Prize</th>
-          </tr>
-        </thead>
-        <tbody>
-    `;
+  renderPrizePage(); // 👈 เรียกครั้งแรกทันที
 
-    const pageData = prizeData.slice(currentIndex, currentIndex + rowsPerPage);
-
-    pageData.forEach(item => {
-  html += `
-    <tr class="fade-left show">
-      <td style="padding: 8px; text-align: center;">${item.rank}</td>
-      <td style="padding: 8px; text-align: center;">${item.amount?.toLocaleString() || '-'}</td>
-    </tr>
-  `;
+  // ✅ เพิ่มเงื่อนไข: ถ้าเกิน 5 ค่อยตั้ง interval หมุนหน้า
+  if (prizeData.length > rowsPerPage) {
+    clearInterval(window.prizeInterval);
+    window.prizeInterval = setInterval(renderPrizePage, 10000);
+  } else {
+    clearInterval(window.prizeInterval);
+  }
 });
+  function renderPrizePage() {
+  const isPaging = prizeData.length > rowsPerPage;
+  const pageData = isPaging
+    ? prizeData.slice(currentIndex, currentIndex + rowsPerPage)
+    : prizeData;
+
+  let html = `
+    <table style="width: 100%; font-size: 16px; border-collapse: collapse;">
+      <thead>
+        <tr>
+          <th style="padding: 8px; border-bottom: 1px solid #555;">Rank</th>
+          <th style="padding: 8px; border-bottom: 1px solid #555;">Prize</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  pageData.forEach(item => {
+    html += `
+      <tr>
+        <td style="padding: 8px; text-align: center;">${item.rank}</td>
+        <td style="padding: 8px; text-align: center;">${item.amount?.toLocaleString() || '-'}</td>
+      </tr>
+    `;
+  });
+
+  html += "</tbody></table>";
+  display.innerHTML = html;
+
+  if (isPaging) {
+    currentIndex += rowsPerPage;
+    if (currentIndex >= prizeData.length) currentIndex = 0;
+  }
+}
+
 
     html += "</tbody></table>";
     display.innerHTML = html;
