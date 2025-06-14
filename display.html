@@ -4,9 +4,48 @@
   <meta charset="UTF-8">
   <title>Final Display</title>
  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 
 
   <style>
+  #structure-display, #ko-display {
+  max-height: 40vh;
+  overflow-y: auto;
+}
+  
+@media (max-width: 768px) {
+  .column-left, .column-center, .column-right {
+    width: 100%;
+    border-right: none;
+  }
+  .bottom-left, .bottom-center, .bottom-right {
+    width: 100%;
+    border-left: none;
+    margin-bottom: 10px;
+  }
+  #fullscreenBtn {
+    font-size: 14px;
+    padding: 5px 10px;
+  }
+}
+
+@media (min-width: 1600px) {
+  #fullscreenBtn {
+    display: none;
+  }
+}
+    
+#countdown {
+  font-size: clamp(3rem, 15vw, 14rem);
+}
+#blinds {
+  font-size: clamp(1.5rem, 6vw, 5.4rem);
+}
+#current-level, #next-level {
+  font-size: clamp(1.2rem, 4vw, 2.6rem);
+}
+    
 #lateReg-row {
   font-weight: bold;
   font-size: 20px;
