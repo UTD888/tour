@@ -612,6 +612,7 @@ function loadPrizePool() {
   let prizeData = [];
   let currentIndex = 0;
   const rowsPerPage = 5;
+  let prizeInterval = null;  // ✅ เก็บ interval ไว้เพื่อล้างรอบเก่า
 
   poolRef.orderBy("rank").onSnapshot(snapshot => {
     prizeData = [];
@@ -621,12 +622,13 @@ function loadPrizePool() {
     });
 
     renderPrizePage();
-    setInterval(renderPrizePage, 10000); // เปลี่ยนหน้าใหม่ทุก 10 วินาที
+
+    if (prizeInterval) clearInterval(prizeInterval);  // ✅ เคลียร์รอบก่อนหน้า
+    prizeInterval = setInterval(renderPrizePage, 10000); // ✅ สลับหน้าใหม่ทุก 10 วินาที
   });
 
   function renderPrizePage() {
     let html = `
-      
       <table style="width: 100%; font-size: 16px; border-collapse: collapse;">
         <thead>
           <tr>
@@ -641,9 +643,9 @@ function loadPrizePool() {
 
     pageData.forEach(item => {
       html += `
-        <tr class="fade-left">
+        <tr class="fade-left show">
           <td style="padding: 8px; text-align: center;">${item.rank}</td>
-          <td style="padding: 8px; text-align: center;">${item.amount?.toLocaleString() || '-'}</td>
+          <td style="padding: 8px; text-align: right;">${item.amount}</td>
         </tr>
       `;
     });
@@ -651,22 +653,11 @@ function loadPrizePool() {
     html += "</tbody></table>";
     display.innerHTML = html;
 
-    // เพิ่มคลาส fade-left เพื่อให้แต่ละแถวมีเอฟเฟกต์
-    const rows = display.querySelectorAll(".fade-left");
-    rows.forEach(row => {
-      row.style.opacity = 0;
-      row.style.transform = "translateX(20px)";
-      setTimeout(() => {
-        row.style.transition = "all 1.5s ease";
-        row.style.opacity = 1;
-        row.style.transform = "translateX(0)";
-      }, 50);
-    });
-
     currentIndex += rowsPerPage;
     if (currentIndex >= prizeData.length) currentIndex = 0;
   }
 }
+
 // ✅ หาหมายเลข LEVEL จริง โดยไม่นับ break
 
   function getDisplayLevelNumber(index) {
@@ -1117,6 +1108,27 @@ function startRealtimeCountdownSync(state) {
     updateLateRegFromCountdown();
     updateElapsedTime();
   }, 1000);
+}
+function goToNextLevel() {
+  const stateRef = firebase.firestore()
+    .collection("tournaments")
+    .doc(tourName)
+    .collection("state")
+    .doc("live");
+
+  levelIndex++; // เพิ่ม level ไปขั้นถัดไป
+
+  stateRef.set({
+    levelIndex,
+    startTime: Date.now(),
+    isRunning: true
+  }, { merge: true })
+  .then(() => {
+    console.log("⏭️ เลื่อนไปเลเวลถัดไป:", levelIndex);
+  })
+  .catch((err) => {
+    console.error("❌ ไม่สามารถเลื่อนไปเลเวลถัดไปได้:", err);
+  });
 }
 
 
