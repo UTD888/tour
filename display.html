@@ -26,16 +26,6 @@
   padding: 0;
   overflow: hidden; /* ป้องกัน scroll ทั้งแนวตั้งและแนวนอน */
 }
-
-  body {
-  margin: 0;
-  padding: 0; /* ลบ padding ตรงนี้ */
-  font-family: sans-serif;
-  background-color: #111;
-  color: #fff;
-}
-
-
   .container {
   display: flex;
   flex-direction: column;
@@ -64,7 +54,7 @@
 
   h1 {
     margin: 0;
-    font-size: 3em;
+    font-size: 2.2em;
     text-align: center;
   }
     body { background: #111; color: #fff; font-family: 'Libre Baskerville', serif; margin: 0; padding: 20px;}
@@ -79,21 +69,23 @@
       text-align: center;
       padding: 40px 10px;
       color: white;
-      font-family: 'Arial', sans-serif;
+      font-family: 'Libre Baskerville', serif;
     }
     #current-level {
-      font-size: 3em;
+      font-size: 2.2em;
       margin-bottom: 10px;
       margin-top: -30px;
+      color: #098a2f;
             
     }
     #blinds {
-      font-size: 5.4em;
+      font-size: 5em;
       font-weight: bold;
+      color: #098a2f;
       
     }
     #countdown {
-      font-size: 17em;
+      font-size: 12em;
       font-weight: bold;
       color: gold;
       margin-top: -10px;
@@ -210,7 +202,7 @@ border-right: 1px solid grey;
 <div class="top-half">
 
   <div class="column-left">  
-    <table style="font-size: 30px;">
+    <table style="font-size: 22px;">
     <thead>
       <tr>
         <td><img src="luxu-logo.png" width="60%"></td>        
@@ -219,12 +211,12 @@ border-right: 1px solid grey;
   <td id="elapsed-time">Elapsed Time : 00:00</td>
 </tr>
       <tr>
-        <td style="font-weight: bold;font-size: 30px;color: #098a2f;">Registration</td>   
+        <td style="font-weight: bold;font-size: 25px;color: #098a2f;">Registration</td>   
       </tr>
   
   <tr>
   <td id="lateReg" >
-    <span id="lateReg-row" style="font-size: 30px;">00:00</span>
+    <span id="lateReg-row" style="font-size: 25px;">00:00</span>
   </td>
 </tr>
 
@@ -242,7 +234,7 @@ border-right: 1px solid grey;
   
   <div id="current-level">LEVEL 1</div>
 
-    <div style="font-size: 25px;">SB / BB / ANTE </div>
+    <div style="font-size: 22px;">SB / BB / ANTE </div>
     <div id="blinds">100 / 200 / 200</div>
     
     <div id="countdown">00:00</div>
@@ -260,7 +252,7 @@ border-right: 1px solid grey;
   
 
   <div class="column-right">
-    <div style="font-size: 30px;text-align: center;margin-bottom: 15px;">Blinds Structure</div>
+    <div style="font-size: 22px;text-align: center;margin-bottom: 15px;color: gold;">Blinds Structure</div>
   <div id="structure-display" class="structure-display" style="max-height: 100%;text-align: center;"></div>
   </div>
 
@@ -270,21 +262,21 @@ border-right: 1px solid grey;
   <div class="bottom-half" style="margin-top: 20px;">
     <div class="bottom-left">
     <table>
-      <div style="text-align:center;font-size: 2em;">Player remaining</div>
-    <tbody id="tableBody"></tbody>
+      <div style="text-align:center;font-size: 2em;color: gold;">Player remaining</div>
+    <tbody id="tableBody" style="text-align:center;font-size: 2em;letter-spacing: 3px;"></tbody>
   </table>
   </div>
   
 
-   <div class="bottom-center"><div style="text-align: center;font-size: 2em;">Pay Outs</div>
+   <div class="bottom-center"><div style="text-align: center;font-size: 2em;color: gold;">Pay Outs</div>
   <!-- ย้าย prize-display ออกมานอก table -->
-  <div id="prize-display" style="padding: 2px;text-align: center;"></div>
+  <div id="prize-display" style="padding: 2px;text-align: center;letter-spacing: 3px;"></div>
 </div>
     
     <div class="bottom-right">
-      <div style="width: 100%;text-align: center;font-size: 2em;">Tournament state</div>
+      <div style="width: 100%;text-align: center;font-size: 2em;color: gold;">Tournament state</div>
       <div>
-      <table style="font-size: 30px;">
+      <table style="font-size: 1.2em; font-weight: bold;letter-spacing: 3px;">
     <thead>
       <tr><td><span id="entry-count">Entry : 0</span> / <span id="entry-remaining">0 Remaining</span></td></tr>
 <tr><td id="reentry-count">Re-Entry : 0</td></tr>
@@ -306,6 +298,9 @@ border-right: 1px solid grey;
   <script src="firebase-init.js"></script>
   
   <script>
+
+let checkChampionInterval;
+
     let lateRegLimit = 0;
     let lastNotifiedLevel = null; // กันไม่ให้ ding ซ้ำเลเวลเดิม
 
@@ -433,25 +428,35 @@ stateRef.onSnapshot((docSnap) => {
 
     if (isRunning && state.startTime) {
       window.timerInterval = setInterval(() => {
-        const now = Date.now();
-        const elapsed = Math.floor((now - state.startTime) / 1000);
-        secondsLeft = Math.max(0, duration - elapsed);
+  const now = Date.now();
+  const elapsed = Math.floor((now - state.startTime) / 1000);
+  secondsLeft = Math.max(0, duration - elapsed);
 
-        updateCountdownUI();
-        updateNextBreakFromCountdown();
-        updateLateRegFromCountdown();
-        updateElapsedTime();
+  updateCountdownUI();
+  updateNextBreakFromCountdown();
+  updateLateRegFromCountdown();
+  updateElapsedTime();
 
-        // ข้ามเลเวลเมื่อหมดเวลา และป้องกันการข้ามซ้ำ
-        if (secondsLeft === 0 && !window.levelJumped) {
-          window.levelJumped = true;
-          setTimeout(() => {
-            goToNextLevel();
-            window.levelJumped = false;
-          }, 1000);
-        }
+  // 🔔 เตือนทุกวินาทีเมื่อเหลือ 10 วิสุดท้าย
+  if (secondsLeft <= 10 && secondsLeft > 0 && isRunning) {
+    document.getElementById("tickSound").play().catch(() => {});
+  }
 
-      }, 1000);
+  // 🔔 เตือนเมื่อเข้าสู่เลเวลใหม่
+  if (lastNotifiedLevel !== levelIndex) {
+    lastNotifiedLevel = levelIndex;
+    document.getElementById("dingSound").play().catch(() => {});
+  }
+
+  if (secondsLeft === 0 && !window.levelJumped) {
+    window.levelJumped = true;
+    setTimeout(() => {
+      goToNextLevel();
+      window.levelJumped = false;
+    }, 1000);
+  }
+}, 1000);
+
     } else {
       // เมื่อหยุด → ใช้ secondsLeft จาก Firebase
       secondsLeft = state.secondsLeft ?? duration;
@@ -502,7 +507,11 @@ function updateDateTime() {
     hour12: false
   };
   const formatted = now.toLocaleString('en-GB', options);
-  document.getElementById("datetime").textContent = formatted;
+  const el = document.getElementById("dateTime");
+if (el) {
+  el.textContent = formattedTime;
+}
+
 }
 
 // อัปเดตทุกวินาที
@@ -662,6 +671,7 @@ function loadPrizePool() {
   }
 }
 
+
 // ✅ หาหมายเลข LEVEL จริง โดยไม่นับ break
 
   function getDisplayLevelNumber(index) {
@@ -725,10 +735,12 @@ let secondsLeft = 0;
 
 
 function updateCountdownUI() {
+  
   const countdownEl = document.getElementById("countdown");
   const m = Math.floor(secondsLeft / 60);
   const s = secondsLeft % 60;
   countdownEl.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  
 }
 
 const container = document.getElementById("structure-display");
@@ -1135,7 +1147,45 @@ function goToNextLevel() {
   });
 }
 
+function showChampionScreen(tour, name) {
+  clearInterval(countdownInterval);
+  clearInterval(checkChampionInterval);
 
+  document.body.innerHTML = `
+    <div style="height: 100vh; background-color: black; display: flex; flex-direction: column; justify-content: center; align-items: center; font-family: 'Saira', sans-serif;">
+      <h1 style="font-size: 100px; color: gold; text-shadow: 2px 2px 15px white;">🏆 CHAMPION 🏆</h1>
+      <h2 style="font-size: 60px; color: white;">${name}</h2>
+      <p style="font-size: 26px; color: #ccc;">Tournament: ${tour}</p>
+    </div>
+  `;
+}
+
+
+async function checkChampion() {
+  try {
+    const snap = await db.collection("tournaments").doc(tourName).collection("players").get();
+
+    const allPlayers = snap.docs.map(doc => ({
+      ...doc.data(),
+      id: doc.id  // ใช้ชื่อจาก document ID
+    }));
+
+    const remaining = allPlayers.filter(p => {
+  const status = (p.status || "").toLowerCase();
+  return status === "active" || status === "alive";
+});
+
+
+    if (remaining.length === 1 && allPlayers.length >= 2) {
+      const p = remaining[0];
+      const winner = p.name || p.player || p.nickname || p.displayName || p.id || "Unknown";
+      showChampionScreen(tourName, winner);
+    }
+  } catch (e) {
+    console.error("❌ Error checking champion:", e);
+  }
+}
+  setInterval(checkChampion, 5000);
 
 
 </script>
