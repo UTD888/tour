@@ -5,205 +5,185 @@
   <title>Final Display</title>
  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville&display=swap" rel="stylesheet">
 
-<style>
-  html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background: #111;
-    color: #fff;
-    font-family: 'Libre Baskerville', serif;
-  }
 
+  <style>
+    #prize-display tr {
+  animation: fadeLeft 1.5s ease-in-out;
+}
+
+#lateReg-row {
+  font-weight: bold;
+  font-size: 20px;
+}
+#lateReg.closed {
+  background-color: darkred !important;
+  color: white !important;
+}
+
+  html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* ป้องกัน scroll ทั้งแนวตั้งและแนวนอน */
+}
   .container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    max-width: 1920px;
-    margin: 0 auto;
-  }
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.top-half {
+  flex-basis: 60%;
+  max-height: 60%;
+  display: flex;
+  flex-direction: row;
+  background-color: #222;
+  
+}
+
+.bottom-half {
+  flex-basis: 40%;
+  max-height: 40%;
+  display: flex;
+  flex-direction: row;
+  background-color: #1a1a1a;
+  overflow: hidden;
+}
+
+
 
   h1 {
     margin: 0;
-    font-size: clamp(24px, 2.5vw, 60px);
-    text-align: center;
-    color: gold;
-  }
-
-  h2 {
-    text-align: center;
-    color: #ccc;
-    margin-top: 0;
-  }
-
-  table {
-    width: 95%;
-    margin: 20px auto;
-    border-collapse: collapse;
-    font-size: clamp(16px, 1.2vw, 28px);
-  }
-
-  th, td {
-    padding: clamp(6px, 1vw, 18px);
-    border: 1px solid #444;
+    font-size: 2.2em;
     text-align: center;
   }
-
-  th {
-    background: #222;
-  }
-
-  tr:nth-child(even) {
-    background: #2a2a2a;
-  }
-
-  .top-half {
-    display: flex;
-    flex-direction: row;
-    background-color: #222;
-    min-height: 40vh;
-    max-height: 60vh;
-  }
-
-  .bottom-half {
-    display: flex;
-    flex-direction: row;
-    background-color: #1a1a1a;
-    min-height: 40vh;
-  }
-
-  .column-left, .column-center, .column-right {
-    padding: 10px;
-    box-sizing: border-box;
-  }
-
-  .column-left {
-    width: 20%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-right: 1px solid grey;
-  }
-
-  .column-center {
-    width: 60%;
-    border-right: 1px solid grey;
-  }
-
-  .column-right {
-    width: 20%;
-    background-color: #222;
-  }
-
-  .bottom-left, .bottom-center, .bottom-right {
-    width: 33.33%;
-    padding: 10px;
-    box-sizing: border-box;
-    background-color: #1a1a1a;
-    border-left: 1px solid #444;
-  }
-
-  .bottom-left:first-child {
-    border-left: none;
-  }
-
-  #clock-container {
-    text-align: center;
-    padding: 30px 10px;
-  }
-
-  #current-level {
-    font-size: clamp(22px, 3vw, 60px);
-    margin-bottom: 10px;
-    color: #098a2f;
-  }
-
-  #blinds {
-    font-size: clamp(30px, 5vw, 100px);
-    font-weight: bold;
-    color: #098a2f;
-  }
-
-  #countdown {
-    font-size: clamp(60px, 10vw, 200px);
-    font-weight: bold;
-    color: gold;
-    margin-top: -10px;
-  }
-
-  #next-level {
-    font-size: clamp(18px, 2vw, 48px);
-    color: #aaa;
-  }
-
-  #tableBody tr {
-    display: none;
-    font-size: clamp(16px, 1.2vw, 26px);
-  }
-
-  #tableBody tr.show {
-    display: table-row;
-    animation: fadeLeft 1.5s ease-in-out;
-  }
-
-  #prize-display tr {
-    display: table-row;
-    font-size: clamp(16px, 1.2vw, 24px);
-    animation: fadeLeft 1.5s ease-in-out;
-  }
-
-  #structure-display {
-    font-size: clamp(14px, 1.1vw, 22px);
-    text-align: center;
-  }
-
-  .fade-left {
-    opacity: 0;
-    transform: translateX(20px);
-    transition: all 1.2s ease;
-  }
-
-  .fade-left.show {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  @keyframes fadeLeft {
-    from { opacity: 0; transform: translateX(20px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-#structure-display {
+    body { background: #111; color: #fff; font-family: 'Libre Baskerville', serif; margin: 0; padding: 20px;}
+    h1 { text-align: center; color: gold; margin-bottom: 10px; }
+    h2 { text-align: center; color: #ccc; margin-top: 0; }
+    table { width: 95%; margin: 20px auto; border-collapse: collapse; font-size: 16px; }
+    th, td { padding: 10px; border: 1px solid #444; text-align: center; }
+    th { background: #222; }
+    tr:nth-child(even) { background: #2a2a2a; }
+    
+    #clock-container {
+      text-align: center;
+      padding: 40px 10px;
+      color: white;
+      font-family: 'Libre Baskerville', serif;
+    }
+    #current-level {
+      font-size: 2.2em;
+      margin-bottom: 10px;
+      margin-top: -30px;
+      color: #098a2f;
+            
+    }
+    #blinds {
+      font-size: 5em;
+      font-weight: bold;
+      color: #098a2f;
+      
+    }
+    #countdown {
+      font-size: 11em;
+      font-weight: bold;
+      color: gold;
+      margin-top: -10px;
+      width: 100%;
+      
+    }
+    #next-level {
+      font-size: 2.2em;
+      color: #aaa;
+      width: 100%;
+    }
+    .top-half {
   display: flex;
-  flex-direction: column;
-  justify-content: space-evenly; /* กระจายช่องไฟ */
-  height: 100%;
-  font-size: clamp(10px, 1vw, 20px); /* ปรับอัตโนมัติ */
+  flex-direction: row;
+  height: 50vh;
+  overflow: hidden;
+}
+
+.column-left, .column-center, .column-right {
   padding: 10px;
   box-sizing: border-box;
 }
 
+.column-left {
+  width: 20%;
+  display: flex;
+align-items: center;
+justify-content: center;
+border-right: 1px solid grey;
+}
 
-#structure-display .level-item {
-  flex: 1;
-  display: block;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 2px 5px;
+.column-center {
+  width: 60%;
+  border-right: 1px solid grey;
 }
 
 .column-right {
   width: 20%;
-  display: flex;
-  flex-direction: column;
-  justify-content: stretch;
   background-color: #222;
+}
+ .bottom-half {
+  display: flex;
+  flex-direction: row;
+  height: 50vh;
+}
+
+.bottom-left, .bottom-center, .bottom-right {
+  width: 33.33%;
+  padding: 10px;
+  box-sizing: border-box;
+  background-color: #1a1a1a;
+  border-left: 1px solid #444;
+}
+
+.bottom-left:first-child {
+  border-left: none;
+}
+#tableBody tr {
+  display: none;
+  font-size: 18px;
+}
+
+#tableBody tr.show {
+  display: table-row;
+  animation: fadeLeft 1.5s ease-in-out;
+}
+
+@keyframes fadeLeft {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 7; transform: translateX(0); }
+}
+
+#prize-display tr.show {
+  display: table-row;
+  animation: fadeLeft 1.5s ease-in-out;
+  
+}
+#prize-display tr {
+  display: table-row;
+  animation: fadeLeft 1.5s ease-in-out;
+  font-size: 20px;
+}
+#structure-display {
+  font-size: 20px;
+}
+.fade-left {
+  opacity: 0;
+  transform: translateX(20px);
+  transition: all 1.2s ease;
+}
+
+.fade-left.show {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 
-</style>
-
+  </style>
 </head>
 
 <body>
