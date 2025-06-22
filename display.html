@@ -33,8 +33,8 @@
 }
 
 .top-half {
-  flex-basis: 60%;
-  max-height: 60%;
+  flex-basis: 55%;
+  max-height: 55%;
   display: flex;
   flex-direction: row;
   background-color: #222;
@@ -42,11 +42,11 @@
 }
 
 .bottom-half {
-  flex-basis: 40%;
-  max-height: 40%;
+  flex-basis: 38%;
+  max-height: 38%;
   display: flex;
   flex-direction: row;
-  background-color: #1a1a1a;
+  background-color: #222;
   overflow: hidden;
 }
 
@@ -67,7 +67,7 @@
     
     #clock-container {
       text-align: center;
-      padding: 40px 10px;
+      padding: 20px 10px;
       color: white;
       font-family: 'Libre Baskerville', serif;
     }
@@ -78,13 +78,14 @@
             
     }
     #blinds {
-      font-size: 5em;
+      font-size: 3.5em;
       font-weight: bold;
       color: #098a2f;
+      letter-spacing: 3px;
       
     }
     #countdown {
-      font-size: 11em;
+      font-size: 10em;
       font-weight: bold;
       color: gold;
       width: 100%;
@@ -98,7 +99,7 @@
     .top-half {
   display: flex;
   flex-direction: row;
-  height: 60%;
+  height: 55%;
   overflow: hidden;
 }
 
@@ -108,7 +109,7 @@
 }
 
 .column-left {
-  width: 25%;
+  width: 24%;
   display: flex;
 align-items: center;
 justify-content: center;
@@ -121,23 +122,21 @@ border-right: 1px solid grey;
 }
 
 .column-right {
-  width: 25%;
+  width: 24%;
   background-color: #222;
 }
  .bottom-half {
   display: flex;
   flex-direction: row;
-  height: 40%;
-  margin-bottom: 10px;
+  height: 38%;
+  margin-bottom: 5px;
 }
 
 .bottom-left, .bottom-center, .bottom-right {
   width: 33%;
-  height: 90%;
+  height: 95%;
   padding: 2px;
   box-sizing: border-box;
-  background-color: #1a1a1a;
-  border-left: 1px solid #444;
 }
 
 
@@ -195,6 +194,7 @@ border-right: 1px solid grey;
   <button id="fullscreenBtn" style="position:fixed;top:10px;right:10px;z-index:999;font-size:18px;padding:8px 12px;cursor:pointer;">
   ⛶ Fullscreen
 </button>
+
 <div class="container">
 
   <h1 id="pageTitle">🏆 Tournament: Loading...</h1>
@@ -203,7 +203,7 @@ border-right: 1px solid grey;
 <div class="top-half">
 
   <div class="column-left">  
-    <table style="font-size: 18px;">
+    <table >
     <thead>
       <tr>
         <td><img src="luxu-logo.png" width="60%"></td>        
@@ -236,7 +236,7 @@ border-right: 1px solid grey;
   <div id="current-level">LEVEL 1</div>
 
     <div style="font-size: 22px;">SB / BB / ANTE </div>
-    <div id="blinds">100 / 200 / 200</div>
+    <div id="blinds">100/200/200</div>
     
     <div id="countdown">00:00</div>
     <div id="btncontrol">   
@@ -254,7 +254,7 @@ border-right: 1px solid grey;
 
   <div class="column-right">
     <div style="font-size: 20px;text-align: center;margin-bottom: 15px;color: gold;">Blinds Structure</div>
-  <div id="structure-display" class="structure-display" style="max-height: 100%;text-align: center;"></div>
+  <div id="structure-display" class="structure-display" style="max-height: 95%;text-align: center;"></div>
   </div>
 
 </div>
@@ -277,9 +277,9 @@ border-right: 1px solid grey;
     <div class="bottom-right">
       <div style="width: 100%;text-align: center;font-size: 2em;color: gold;">Tournament state</div>
       <div>
-      <table style="font-size: 1.2em; font-weight: bold;letter-spacing: 3px;">
+      <table style="font-size: 1.2em;letter-spacing: 3px;">
     <thead>
-      <tr><td><span id="entry-count">Entry : 0</span> / <span id="entry-remaining">0 Remaining</span></td></tr>
+      <tr><td><span id="entry-count">Entry : 0</span> | <span id="entry-remaining">0 Remaining</span></td></tr>
 <tr><td id="reentry-count">Re-Entry : 0</td></tr>
 <tr><td id="addon-count">Add-on : 0</td></tr>
 <tr><td id="total-stack">Total Stack : 0</td></tr>
@@ -754,7 +754,7 @@ function renderStructure(structure = []) {
     const isBreak = level.type === 'break' || level.isBreak;
     const item = document.createElement("div");
     item.className = "level-item";
-    item.style.padding = "5px";
+    item.style.padding = "3px";
 
     if (!isBreak) levelCounter++;
 
