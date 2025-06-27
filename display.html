@@ -7,7 +7,7 @@
 
 
 <style>
-    #prize-display tr {
+#prize-display tr {
   animation: fadeLeft 1.5s ease-in-out;
 }
 
@@ -33,23 +33,26 @@
 }
 
 .top-half {
-  flex-basis: 50%;
-  max-height: 50%;
-  display: flex;
-  flex-direction: row;
-  background-color: #222;
-  
-}
-
-.bottom-half {
-  flex-basis: 37%;
-  max-height: 37%;
+  flex-basis: 50vh;
+  max-height: 50vh;
   display: flex;
   flex-direction: row;
   background-color: #222;
   overflow: hidden;
+  
 }
 
+.bottom-half {
+  display: flex;
+  width: 100%;
+}
+.bottom-left,
+.bottom-center,
+.bottom-right {
+  flex: 1;
+  padding: 10px;
+  box-sizing: border-box;
+}
 
 
   h1 {
@@ -67,59 +70,58 @@
     
     #clock-container {
       text-align: center;
-      padding: 20px 10px;
+      padding: 0;
       color: white;
       font-family: 'Libre Baskerville', serif;
     }
     #current-level {
-      font-size: 2.2em;
-      margin-bottom: 10px;
+      font-size: 4em;
       color: #098a2f;
             
     }
     #blinds {
-      font-size: 2.2em;
+      font-size: 6em;
       font-weight: bold;
       color: #098a2f;
-      letter-spacing: 2px;
-      width:95%;
+      letter-spacing: 1px;
+      width: 95vh;
+      
       
     }
     #countdown {
-      font-size: 10em;
+      font-size: 12em;
       font-weight: bold;
       color: gold;
-      width: 100%;
+      width: 100vh;
       margin-top: -15px;
       
     }
     #next-level {
-      font-size: 2.2em;
+      font-size: 2.5em;
       color: #aaa;
-      width: 100%;
+      width: 100vh;
     }
-    .top-half {
-  display: flex;
-  flex-direction: row;
-  height: 55%;
-  overflow: hidden;
+
+.column-left table {
+  border-collapse: collapse;
 }
 
-.column-left, .column-center, .column-right {
-  padding: 2px;
-  box-sizing: border-box;
+.column-left td {
+  border: none !important;
+  padding: 6px; /* หรือปรับตามต้องการ */
 }
+
 
 .column-left {
-  width: 22%;
-  display: flex;
+width: 23%;
+display: flex;
 align-items: center;
 justify-content: center;
 border-right: 1px solid grey;
 }
 
 .column-center {
-  width: 55%;
+  width: 54%;
   border-right: 1px solid grey;
 }
 
@@ -128,18 +130,6 @@ border-right: 1px solid grey;
   background-color: #222;
 }
 
-
-.bottom-left, .bottom-center, .bottom-right {
-  width: 33%;
-  height: 95%;
-  padding: 2px;
-  box-sizing: border-box;
-}
-
-
-.bottom-left:first-child {
-  border-left: none;
-}
 #tableBody tr {
   display: none;
   font-size: 18px;
@@ -195,7 +185,7 @@ border-right: 1px solid grey;
 <div class="container">
 
   <h1 id="pageTitle">🏆 Tournament: Loading...</h1>
-  <div id="datetime" style="text-align:center; font-size:16px; color:#ccc; margin-top:-10px;"></div>
+  <div id="datetime" style="text-align:center; font-size:18px; color:#f0ebeb; margin-top:-10px;"></div>
 
 <div class="top-half">
 
@@ -232,7 +222,7 @@ border-right: 1px solid grey;
   
   <div id="current-level">LEVEL 1</div>
 
-    <div style="font-size: 22px;">SB / BB / ANTE </div>
+    <div style="font-size: 20px;">SB / BB / ANTE </div>
     <div id="blinds">100/200/200</div>
     
     <div id="countdown">00:00</div>
@@ -258,21 +248,22 @@ border-right: 1px solid grey;
 
 
   <div class="bottom-half" style="margin-top: 10px;">
-    <div class="bottom-left">
-    <table>
-      <div style="text-align:center;font-size: 2em;color: gold;">Player remaining</div>
+    
+    <div class="bottom-left" style="margin-left: 30px;">
+<div style="text-align:center;font-size: 2em;color: gold;">Player remaining</div>
+    <table>      
     <tbody id="tableBody" style="text-align:center;font-size: 1.8em;letter-spacing: 3px;"></tbody>
   </table>
   </div>
   
 
-   <div class="bottom-center"><div style="text-align: center;font-size: 2em;color: gold;">Pay Outs</div>
-  <!-- ย้าย prize-display ออกมานอก table -->
-  <div id="prize-display" style="padding: 2px;text-align: center;letter-spacing: 3px;"></div>
+   <div class="bottom-center" style="margin-right: 30px;">
+    <div style="text-align: center;font-size: 2em;color: gold;">Pay Outs</div>
+  <div id="prize-display" style="text-align: center;letter-spacing: 3px;"></div>
 </div>
     
     <div class="bottom-right">
-      <div style="width: 100%;text-align: center;font-size: 2em;color: gold;">Tournament state</div>
+      <div style="text-align: center;font-size: 2em;color: gold;">Tournament state</div>
       <div>
       <table style="font-size: 1.2em;letter-spacing: 3px;">
     <thead>
@@ -288,7 +279,7 @@ border-right: 1px solid grey;
   
   </div>
 
-  </div>
+</div>
   
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -497,20 +488,19 @@ document.addEventListener('fullscreenchange', () => {
     fsBtn.style.display = "block";
   }
 });
-function updateDateTime() {
-  const now = new Date();
-  const options = {
-    weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-    hour12: false
-  };
-  const formatted = now.toLocaleString('en-GB', options);
-  const el = document.getElementById("dateTime");
-if (el) {
-  el.textContent = formattedTime;
-}
 
-}
+function updateDateTime() {
+    const now = new Date();
+    const options = {
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: false
+    };
+    document.getElementById("datetime").textContent = now.toLocaleString('th-TH', options);
+  }
+
+  setInterval(updateDateTime, 1000);
+  updateDateTime();
 
 // อัปเดตทุกวินาที
 setInterval(updateDateTime, 1000);
