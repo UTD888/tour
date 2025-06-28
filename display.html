@@ -37,7 +37,6 @@
   max-height: 50vh;
   display: flex;
   flex-direction: row;
-  background-color: #222;
   overflow: hidden;
   
 }
@@ -84,7 +83,7 @@
       font-weight: bold;
       color: #098a2f;
       letter-spacing: 1px;
-      width: 95vh;
+      
       
       
     }
@@ -92,7 +91,7 @@
       font-size: 12em;
       font-weight: bold;
       color: gold;
-      width: 100vh;
+      
       margin-top: -15px;
       
     }
@@ -117,17 +116,20 @@ width: 23%;
 display: flex;
 align-items: center;
 justify-content: center;
-border-right: 1px solid grey;
+
 }
 
 .column-center {
   width: 54%;
-  border-right: 1px solid grey;
+ border: 2px solid gold;
+  box-shadow: 0 0 10px gold, 0 0 20px gold;
+  border-radius: 6px;
+  padding: 8px;
 }
 
 .column-right {
   width: 23%;
-  background-color: #222;
+  
 }
 
 #tableBody tr {
@@ -240,7 +242,7 @@ border-right: 1px solid grey;
   
 
   <div class="column-right">
-    <div style="font-size: 20px;text-align: center;margin-bottom: 15px;color: gold;">Blinds Structure</div>
+    <div style="font-size: 30px;text-align: center;margin-bottom: 15px;color: gold;">Blinds Structure</div>
   <div id="structure-display" class="structure-display" style="max-height: 75%;text-align: center;"></div>
   </div>
 
@@ -249,7 +251,7 @@ border-right: 1px solid grey;
 
   <div class="bottom-half" style="margin-top: 10px;">
     
-    <div class="bottom-left" style="margin-left: 30px;">
+    <div class="bottom-left" style="margin-left: 20px;">
 <div style="text-align:center;font-size: 2em;color: gold;">Player remaining</div>
     <table>      
     <tbody id="tableBody" style="text-align:center;font-size: 1.8em;letter-spacing: 3px;"></tbody>
@@ -257,7 +259,7 @@ border-right: 1px solid grey;
   </div>
   
 
-   <div class="bottom-center" style="margin-right: 30px;">
+   <div class="bottom-center" style="margin-right: 25px;">
     <div style="text-align: center;font-size: 2em;color: gold;">Pay Outs</div>
   <div id="prize-display" style="text-align: center;letter-spacing: 3px;"></div>
 </div>
@@ -707,7 +709,7 @@ function countRealLevelNumber(structure, currentIndex) {
   } else if (next?.isBreak || next?.type === 'break') {
     nextDiv.innerHTML = `Next : <span style="color:#ff9999;">${next.note || 'Break'}</span> (${next.duration || '-'} min)`;
   } else {
-    nextDiv.textContent = `Next Lv : ${next.sb || '-'} / ${next.bb || '-'} / ${next.ante || '-'}`;
+    nextDiv.textContent = `Next : ${next.sb || '-'} / ${next.bb || '-'} / ${next.ante || '-'}`;
     nextDiv.style.color = "#fff";
   }
 }
@@ -741,7 +743,8 @@ function renderStructure(structure = []) {
     const isBreak = level.type === 'break' || level.isBreak;
     const item = document.createElement("div");
     item.className = "level-item";
-    item.style.padding = "3px";
+    item.style.padding = "3px 8px";      // ✅ ปรับ padding ให้สวย
+
 
     if (!isBreak) levelCounter++;
 
