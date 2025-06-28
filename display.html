@@ -73,33 +73,37 @@
       color: white;
       font-family: 'Libre Baskerville', serif;
     }
-    #current-level {
-      font-size: 4em;
-      color: #098a2f;
-            
-    }
-    #blinds {
-      font-size: 6em;
-      font-weight: bold;
-      color: #098a2f;
-      letter-spacing: 1px;
-      
-      
-      
-    }
-    #countdown {
-      font-size: 12em;
-      font-weight: bold;
-      color: gold;
-      
-      margin-top: -15px;
-      
-    }
-    #next-level {
-      font-size: 2.5em;
-      color: #aaa;
-      width: 100vh;
-    }
+#current-level {
+  font-size: clamp(22px, 3vw, 44px); /* ระดับเลเวล */
+  color: #098a2f;
+  margin-top: 10px;
+}
+
+#blinds {
+  font-size: clamp(28px, 6vw, 80px); /* ตัวเลข blinds */
+  font-weight: bold;
+  color: #098a2f;
+  letter-spacing: 1px;
+  margin-top: 20px;
+}
+
+#countdown {
+  font-size: clamp(40px, 10vw, 120px); /* นาฬิกาใหญ่สุด */
+  font-weight: bold;
+  color: gold;
+  margin-top: 40px;
+  
+}
+
+#next-level {
+  font-size: clamp(16px, 2.5vw, 36px); /* ข้อมูล next blinds */
+  color: #aaa;
+}
+
+#clock-container > div:nth-child(2) {
+  font-size: clamp(12px, 1.8vw, 24px); /* SB/BB/ANTE label */
+}
+
 
 .column-left table {
   border-collapse: collapse;
@@ -180,18 +184,18 @@ justify-content: center;
   <audio id="tickSound" src="tick.mp3" preload="auto"></audio>
   <audio id="gunSound" src="gun.MP3" preload="auto"></audio>
 
-  <button id="fullscreenBtn" style="position:fixed;top:10px;right:10px;z-index:999;font-size:18px;padding:8px 12px;cursor:pointer;">
-  ⛶ Fullscreen
+  <button id="fullscreenBtn" style="position:fixed;top:10px;right:10px;z-index:999;padding:8px 8px;cursor:pointer;">
+  ⛶
 </button>
 
 <div class="container">
 
-  <h1 id="pageTitle">🏆 Tournament: Loading...</h1>
+  <h1 id="pageTitle" style="margin-top: 40px;">🏆 Tournament: Loading...</h1>
   <div id="datetime" style="text-align:center; font-size:18px; color:#f0ebeb; margin-top:-10px;"></div>
 
 <div class="top-half">
 
-  <div class="column-left">  
+  <div class="column-left" style="margin-right: 20px;">  
     <table >
     <thead>
       <tr>
@@ -224,15 +228,15 @@ justify-content: center;
   
   <div id="current-level">LEVEL 1</div>
 
-    <div style="font-size: 20px;">SB / BB / ANTE </div>
+    <div >SB / BB / ANTE </div>
     <div id="blinds">100/200/200</div>
     
     <div id="countdown">00:00</div>
-    <div id="btncontrol" style="margin-top: -20px;">   
-  <img id="btnFD" src="fd.png" width="20" style="cursor:pointer; margin-right:10px;">
-  <img id="btnPlayPause" src="play.png" width="20" style="cursor:pointer; margin-right:10px;">
-  <img id="btnFF" src="ff.png" width="20" style="cursor:pointer; margin-right:10px;">  
-  <img id="btnReset" src="reset.png" width="20" style="cursor:pointer;">  
+    <div id="btncontrol">   
+  <img id="btnFD" src="fd.png" width="16" style="cursor:pointer; margin-right:10px;">
+  <img id="btnPlayPause" src="play.png" width="16" style="cursor:pointer; margin-right:10px;">
+  <img id="btnFF" src="ff.png" width="16" style="cursor:pointer; margin-right:10px;">  
+  <img id="btnReset" src="reset.png" width="16" style="cursor:pointer;">  
   </div>    
     <div id="next-level">Next : SB 200 / BB 400 / ANTE 400</div>
     </div>
@@ -243,7 +247,7 @@ justify-content: center;
 
   <div class="column-right">
     <div style="font-size: 30px;text-align: center;margin-bottom: 15px;color: gold;">Blinds Structure</div>
-  <div id="structure-display" class="structure-display" style="max-height: 75%;text-align: center;"></div>
+  <div id="structure-display" class="structure-display" style="max-height: 75%;text-align: center;width: 80%;margin-left: 30px;"></div>
   </div>
 
 </div>
