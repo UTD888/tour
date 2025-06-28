@@ -55,7 +55,6 @@
 
 
   h1 {
-    margin: 0;
     font-size: 2em;
     text-align: center;
   }
@@ -162,7 +161,7 @@ justify-content: center;
   font-size: 18px;
 }
 #structure-display {
-  font-size: clamp(16px, 1vw, 32px); 
+  font-size: clamp(16px, 0.9vw, 32px); 
 
 }
 .fade-left {
@@ -191,7 +190,7 @@ justify-content: center;
 
 <div class="container">
 
-  <h1 id="pageTitle" style="margin-top: 40px;">🏆 Tournament: Loading...</h1>
+  <h1 id="pageTitle" style="margin-top: 10px;">🏆 Tournament: Loading...</h1>
   <div id="datetime" style="text-align:center; font-size:18px; color:#f0ebeb; margin-top:-10px;"></div>
 
 <div class="top-half">
@@ -233,7 +232,7 @@ justify-content: center;
     <div id="blinds">100/200/200</div>
     
     <div id="countdown">00:00</div>
-    <div id="btncontrol">   
+    <div id="btncontrol" style="margin-top: -15px;">   
   <img id="btnFD" src="fd.png" width="16" style="cursor:pointer; margin-right:10px;">
   <img id="btnPlayPause" src="play.png" width="16" style="cursor:pointer; margin-right:10px;">
   <img id="btnFF" src="ff.png" width="16" style="cursor:pointer; margin-right:10px;">  
